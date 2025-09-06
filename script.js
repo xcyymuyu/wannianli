@@ -1,5 +1,109 @@
-// 使用全局加载的lunisolar库
-const lunisolar = window.lunisolar;
+// ============================================================================
+// 天干地支查询工具 - 主程序
+// ============================================================================
+
+// ============================================================================
+// 1. 全局变量和配置
+// ============================================================================
+
+// 全局变量
+let lunisolar = null;
+let takeSound = null;
+
+// ============================================================================
+// 2. 库加载模块
+// ============================================================================
+
+/**
+ * 加载lunisolar库
+ * 支持多个CDN源，确保加载成功
+ */
+const loadLunisolar = async () => {
+    const jsBasePath = window.location.hostname.includes('github.io') ? 
+        '/' + window.location.pathname.split('/').filter(Boolean)[0] + '/' : 
+        './';
+    
+    // 尝试多个来源加载lunisolar
+    const sources = [
+        'https://cdn.jsdelivr.net/npm/lunisolar@2.0.0/dist/lunisolar.esm.js',
+        'https://unpkg.com/lunisolar@2.0.0/dist/lunisolar.esm.js',
+        jsBasePath + 'lib/lunisolar.esm.js'
+    ];
+    
+    for (const source of sources) {
+        try {
+            console.log(`尝试从 ${source} 加载lunisolar...`);
+            const module = await import(source);
+            console.log(`✓ 成功从 ${source} 加载lunisolar`);
+            return module.default;
+        } catch (error) {
+            console.warn(`✗ 从 ${source} 加载失败:`, error.message);
+        }
+    }
+    throw new Error('所有lunisolar加载源都失败了');
+};
+
+/**
+ * 加载takeSound插件
+ * 用于获取纳音五行信息
+ */
+const loadTakeSound = async () => {
+    const jsBasePath = window.location.hostname.includes('github.io') ? 
+        '/' + window.location.pathname.split('/').filter(Boolean)[0] + '/' : 
+        './';
+    
+    const takeSoundSources = [
+        'https://cdn.jsdelivr.net/npm/@lunisolar/plugin-takesound@0.1.2/dist/index.mjs',
+        'https://unpkg.com/@lunisolar/plugin-takesound@0.1.2/dist/index.mjs',
+        jsBasePath + 'lib/takesound.mjs'
+    ];
+    
+    for (const source of takeSoundSources) {
+        try {
+            console.log(`尝试从 ${source} 加载takeSound插件...`);
+            const module = await import(source);
+            console.log(`✓ 成功从 ${source} 加载takeSound插件`);
+            // 根据官方示例，应该导入 takeSound
+            return module.takeSound || module.default;
+        } catch (error) {
+            console.warn(`✗ 从 ${source} 加载takeSound插件失败:`, error.message);
+        }
+    }
+    console.warn('takeSound插件加载失败，将使用传统五行计算');
+    return null;
+};
+
+// ============================================================================
+// 3. 工具函数模块
+// ============================================================================
+
+/**
+ * 从lunisolar对象安全获取属性的辅助函数
+ * @param {Object} obj - 要获取属性的对象
+ * @param {string} path - 属性路径，用点分隔
+ * @param {string} defaultValue - 默认值
+ * @returns {*} 属性值或默认值
+ */
+function safeGet(obj, path, defaultValue = '未查询到') {
+    try {
+        const keys = path.split('.');
+        let result = obj;
+        for (const key of keys) {
+            if (result === null || result === undefined) {
+                return defaultValue;
+            }
+            result = result[key];
+        }
+        return result || defaultValue;
+    } catch (error) {
+        console.warn(`获取属性 ${path} 失败:`, error);
+        return defaultValue;
+    }
+}
+
+// ============================================================================
+// 4. 天干地支基础数据模块
+// ============================================================================
 
 // 天干地支对照表
 const tiangan = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']
@@ -17,7 +121,11 @@ const naying = [
     '大溪水', '沙中土', '天上火', '石榴木', '大海水'
 ]
 
-// 五行穿衣指南相关数据
+// ============================================================================
+// 5. 五行穿衣推荐算法模块
+// ============================================================================
+
+// 五行色彩映射
 const wuxingColors = {
     '金': ['白', '银', '灰', '米白'],
     '木': ['绿', '青', '橄榄绿', '墨绿'],
@@ -51,34 +159,41 @@ const monthWuxing = {
     12: '土'   // 丑月（小寒后）
 }
 
-// 获取月令五行（根据农历月份）
+/**
+ * 获取月令五行（根据农历月份）
+ * @param {number} lunarMonth - 农历月份
+ * @returns {string} 五行属性
+ */
 function getMonthWuxing(lunarMonth) {
     return monthWuxing[lunarMonth] || '土'
 }
 
-// 获取当前日期作为默认值
-function setCurrentDate() {
-    const now = new Date()
-    document.getElementById('year').value = now.getFullYear()
-    document.getElementById('month').value = now.getMonth() + 1
-    document.getElementById('day').value = now.getDate()
-}
-
-// 分析日主强弱
-function analyzeDayMasterStrength(dayStem, monthWuxing, yearStem, monthStem, yearBranch, monthBranch, dayBranch) {
+/**
+ * 分析日主强弱
+ * 基于八字理论，分析日主在月令和其他干支中的强弱程度
+ * @param {Object} dayStem - 日干
+ * @param {string} monthWuxingValue - 月令五行
+ * @param {Object} yearStem - 年干
+ * @param {Object} monthStem - 月干
+ * @param {Object} yearBranch - 年支
+ * @param {Object} monthBranch - 月支
+ * @param {Object} dayBranch - 日支
+ * @returns {number} 强弱分数（正数为旺，负数为弱）
+ */
+function analyzeDayMasterStrength(dayStem, monthWuxingValue, yearStem, monthStem, yearBranch, monthBranch, dayBranch) {
     const dayWuxing = dayStem.e5.name
     let strength = 0
     
     // 月令生扶（权重最高）
-    if (monthWuxing === dayWuxing) {
+    if (monthWuxingValue === dayWuxing) {
         strength += 4  // 得令（增强权重）
-    } else if (wuxingRelations[monthWuxing].生 === dayWuxing) {
+    } else if (wuxingRelations[monthWuxingValue].生 === dayWuxing) {
         strength += 3  // 得生
-    } else if (wuxingRelations[monthWuxing].被生 === dayWuxing) {
+    } else if (wuxingRelations[monthWuxingValue].被生 === dayWuxing) {
         strength += 2  // 得助
-    } else if (wuxingRelations[monthWuxing].克 === dayWuxing) {
+    } else if (wuxingRelations[monthWuxingValue].克 === dayWuxing) {
         strength -= 3  // 被克
-    } else if (wuxingRelations[monthWuxing].被克 === dayWuxing) {
+    } else if (wuxingRelations[monthWuxingValue].被克 === dayWuxing) {
         strength -= 2  // 被泄
     }
     
@@ -135,7 +250,13 @@ function analyzeDayMasterStrength(dayStem, monthWuxing, yearStem, monthStem, yea
     return Math.round(strength * 10) / 10  // 保留一位小数
 }
 
-// 确定用神
+/**
+ * 确定用神
+ * 根据日主强弱确定主用神、次用神和忌神
+ * @param {string} dayWuxing - 日主五行
+ * @param {number} strength - 日主强弱分数
+ * @returns {Object} 用神信息
+ */
 function determineUseGods(dayWuxing, strength) {
     if (strength > 0) {
         // 日主旺，需要克泄
@@ -154,7 +275,12 @@ function determineUseGods(dayWuxing, strength) {
     }
 }
 
-// 获取五行关系
+/**
+ * 获取五行关系
+ * @param {string} wuxing1 - 五行1
+ * @param {string} wuxing2 - 五行2
+ * @returns {string} 关系类型
+ */
 function getWuxingRelation(wuxing1, wuxing2) {
     if (wuxing1 === wuxing2) return '同'
     if (wuxingRelations[wuxing1].生 === wuxing2) return '生'
@@ -164,7 +290,13 @@ function getWuxingRelation(wuxing1, wuxing2) {
     return '无'
 }
 
-// 计算色彩等级
+/**
+ * 计算色彩等级
+ * 根据五行与用神的关系确定色彩等级
+ * @param {string} wuxing - 五行属性
+ * @param {Object} useGods - 用神信息
+ * @returns {Object} 色彩等级信息
+ */
 function calculateColorLevel(wuxing, useGods) {
     const { mainUseGod, subUseGod, avoidGod } = useGods
     
@@ -240,7 +372,13 @@ function calculateColorLevel(wuxing, useGods) {
     }
 }
 
-// 计算五行穿衣指南
+/**
+ * 计算五行穿衣指南
+ * 主函数，整合所有穿衣推荐算法
+ * @param {Object} char8 - 八字信息
+ * @param {number} lunarMonth - 农历月份
+ * @returns {Object} 完整的穿衣指南
+ */
 function calculateDressGuide(char8, lunarMonth) {
     const dayStem = char8.day.stem
     const yearStem = char8.year.stem
@@ -279,7 +417,50 @@ function calculateDressGuide(char8, lunarMonth) {
     }
 }
 
-// 显示穿衣指南
+/**
+ * 生成穿衣推荐文本
+ * 将穿衣指南转换为用户友好的文本描述
+ * @param {Object} dressGuide - 穿衣指南对象
+ * @returns {string} 推荐文本
+ */
+function generateDressRecommendationText(dressGuide) {
+    const { dayMaster, strength, useGods, dressGuide: guide } = dressGuide;
+    
+    // 找到最佳推荐颜色
+    const bestColors = [];
+    const goodColors = [];
+    const neutralColors = [];
+    
+    for (const [wuxing, data] of Object.entries(guide)) {
+        if (data.level === '吉（主用）') {
+            bestColors.push(...data.colors);
+        } else if (data.level === '吉（次用）') {
+            goodColors.push(...data.colors);
+        } else if (data.level.includes('平')) {
+            neutralColors.push(...data.colors);
+        }
+    }
+    
+    let recommendation = `日主${dayMaster}（${strength}），主用神：${useGods.mainUseGod}，次用神：${useGods.subUseGod}。`;
+    
+    if (bestColors.length > 0) {
+        recommendation += ` 首选：${bestColors.slice(0, 3).join('、')}等${useGods.mainUseGod}色系。`;
+    }
+    if (goodColors.length > 0) {
+        recommendation += ` 次选：${goodColors.slice(0, 2).join('、')}等${useGods.subUseGod}色系。`;
+    }
+    if (neutralColors.length > 0) {
+        recommendation += ` 可选：${neutralColors.slice(0, 2).join('、')}等中性色系。`;
+    }
+    
+    return recommendation;
+}
+
+/**
+ * 显示穿衣指南
+ * 在页面上显示详细的穿衣指南HTML
+ * @param {Object} dressGuide - 穿衣指南对象
+ */
 function displayDressGuide(dressGuide) {
     const { dayMaster, strength, monthWuxing, useGods, dressGuide: guide } = dressGuide
     
@@ -350,100 +531,214 @@ function displayDressGuide(dressGuide) {
     dressGuideContainer.innerHTML = dressGuideHTML
 }
 
-// 查询天干地支
+// ============================================================================
+// 6. 主要业务逻辑模块
+// ============================================================================
+
+/**
+ * 查询天干地支主函数
+ * 处理用户输入，调用lunisolar库，显示结果
+ */
 function queryTianganDizhi() {
-    const year = parseInt(document.getElementById('year').value)
-    const month = parseInt(document.getElementById('month').value)
-    const day = parseInt(document.getElementById('day').value)
+    console.log('查询函数被调用');
+    const year = parseInt(document.getElementById('year').value);
+    const month = parseInt(document.getElementById('month').value);
+    const day = parseInt(document.getElementById('day').value);
     
     // 验证输入
     if (!year || !month || !day) {
-        alert('请完整输入年月日信息！')
-        return
+        alert('请输入完整的年月日信息');
+        return;
     }
     
     if (year < 1900 || year > 2100) {
-        alert('年份范围应在1900-2100之间！')
-        return
+        alert('年份范围应在1900-2100之间');
+        return;
     }
     
     if (month < 1 || month > 12) {
-        alert('月份范围应在1-12之间！')
-        return
+        alert('月份范围应在1-12之间');
+        return;
     }
     
     if (day < 1 || day > 31) {
-        alert('日期范围应在1-31之间！')
-        return
+        alert('日期范围应在1-31之间');
+        return;
     }
     
     try {
-        // 使用lunisolar创建日期对象
-        const ls = lunisolar(new Date(year, month - 1, day))
+        // 创建lunisolar日期对象
+        const date = lunisolar(new Date(year, month - 1, day));
+        console.log('lunisolar对象:', date);
         
-        // 获取农历信息
-        const lunar = ls.lunar
-        const lunarYear = lunar.year
-        const lunarMonth = lunar.month
-        const lunarDay = lunar.day
+        // 使用lunisolar库的正确API获取数据
+        const gregorianDate = `${year}年${month}月${day}日`;
         
-        // 获取天干地支信息 - 使用char8属性
-        const char8 = ls.char8
-        const yearGanZhi = char8.year.name
-        const monthGanZhi = char8.month.name
-        const dayGanZhi = char8.day.name
+        // 农历信息
+        const lunarDate = date.lunar ? date.lunar.toString() : '未查询到';
         
-        // 获取生肖
-        const zodiacIndex = (lunarYear - 4) % 12
-        const zodiacIndexFixed = zodiacIndex < 0 ? zodiacIndex + 12 : zodiacIndex
+        // 八字信息
+        const yearGanZhi = date.char8?.year ? date.char8.year.toString() : '未查询到';
+        const monthGanZhi = date.char8?.month ? date.char8.month.toString() : '未查询到';
+        const dayGanZhi = date.char8?.day ? date.char8.day.toString() : '未查询到';
         
-        // 获取五行（基于年柱天干）
-        const yearStem = char8.year.stem
-        const wuxingName = yearStem.e5.name
+        // 生肖 - 使用lunisolar库的正确API
+        let zodiacAnimal = '未查询到生肖';
+        try {
+            const dateStr = `${year}/${month}/${day}`;
+            zodiacAnimal = lunisolar(dateStr).format('cZ年')  || '未查询到生肖';
+        } catch (error) {
+            console.warn('获取生肖失败:', error);
+        }
         
-        // 计算五行穿衣指南
-        const dressGuide = calculateDressGuide(char8, lunarMonth)
+        // 五行信息 - 使用takeSound插件获取纳音五行
+        let wuxingInfo = '未查询到五行';
+        try {
+            // 优先使用takeSound插件获取纳音五行
+            if (date.char8?.day?.takeSound) {
+                wuxingInfo = date.char8?.day?.takeSound;
+                console.log(`从takeSound插件获取纳音五行: ${wuxingInfo}`);
+            }
+        } catch (error) {
+            console.warn('获取五行信息失败:', error);
+            wuxingInfo = '未查询到五行';
+        }
+        
+        // 穿衣推荐 - 基于天干地支数据计算
+        let dressRecommendation = '未查询到';
+        try {
+            // 获取农历月份用于月令计算
+            const lunarMonth = date.lunar ? date.lunar.month : month;
+            
+            // 调用script.js中的函数计算五行穿衣指南
+            if (typeof calculateDressGuide === 'function') {
+                const dressGuide = calculateDressGuide(date.char8, lunarMonth);
+                
+                // 生成穿衣推荐文本
+                if (typeof generateDressRecommendationText === 'function') {
+                    dressRecommendation = generateDressRecommendationText(dressGuide);
+                } else {
+                    // 如果generateDressRecommendationText不存在，使用简单格式
+                    const { dayMaster, strength, useGods } = dressGuide;
+                    dressRecommendation = `日主${dayMaster}（${strength}），主用神：${useGods.mainUseGod}，次用神：${useGods.subUseGod}`;
+                }
+                
+                console.log('五行穿衣推荐计算完成:', dressGuide);
+            } else {
+                console.warn('calculateDressGuide函数未找到，请确保script.js已正确加载');
+                dressRecommendation = '函数未加载';
+            }
+        } catch (error) {
+            console.warn('穿衣推荐计算失败:', error);
+            dressRecommendation = '计算失败';
+        }
         
         // 显示结果
-        document.getElementById('gregorianDate').textContent = `${year}年${month}月${day}日`
-        document.getElementById('lunarDate').textContent = `农历${lunarYear}年${lunarMonth}月${lunarDay}日`
-        document.getElementById('yearTianganDizhi').textContent = `${yearGanZhi}年`
-        document.getElementById('monthTianganDizhi').textContent = `${monthGanZhi}月`
-        document.getElementById('dayTianganDizhi').textContent = `${dayGanZhi}日`
-        document.getElementById('zodiac').textContent = zodiac[zodiacIndexFixed]
-        document.getElementById('wuxing').textContent = wuxingName
+        document.getElementById('gregorianDate').textContent = gregorianDate;
+        document.getElementById('lunarDate').textContent = lunarDate;
+        document.getElementById('yearTianganDizhi').textContent = yearGanZhi;
+        document.getElementById('monthTianganDizhi').textContent = monthGanZhi;
+        document.getElementById('dayTianganDizhi').textContent = dayGanZhi;
+        document.getElementById('zodiac').textContent = zodiacAnimal;
+        document.getElementById('wuxing').textContent = wuxingInfo;
         
-        // 显示穿衣指南
-        displayDressGuide(dressGuide)
+        // 添加穿衣推荐显示
+        let dressElement = document.getElementById('dressRecommendation');
+        if (!dressElement) {
+            // 如果没有穿衣推荐元素，创建一个
+            dressElement = document.createElement('div');
+            dressElement.className = 'result-item highlight';
+            dressElement.innerHTML = '<span class="label">穿衣推荐：</span><span class="value" id="dressRecommendationValue"></span>';
+            document.querySelector('.result-card').appendChild(dressElement);
+        }
+        document.getElementById('dressRecommendationValue').textContent = dressRecommendation;
         
         // 显示结果区域
-        document.getElementById('resultSection').style.display = 'block'
+        document.getElementById('resultSection').style.display = 'block';
         
+        console.log('查询结果显示成功:', {
+            gregorianDate,
+            lunarDate,
+            yearGanZhi,
+            monthGanZhi, 
+            dayGanZhi,
+            zodiacAnimal,
+            wuxingInfo,
+            dressRecommendation
+        });
     } catch (error) {
-        console.error('查询失败：', error)
-        alert('查询失败，请检查输入的日期是否有效！')
+        console.error('查询出错：', error);
+        alert('查询出错，请检查输入的日期是否有效');
     }
 }
 
-// 页面加载完成后设置当前日期
-document.addEventListener('DOMContentLoaded', function() {
-    setCurrentDate()
+/**
+ * 设置今日按钮功能
+ * 自动填充当前日期并查询
+ */
+function setTodayDate() {
+    const now = new Date();
+    document.getElementById('year').value = now.getFullYear();
+    document.getElementById('month').value = now.getMonth() + 1;
+    document.getElementById('day').value = now.getDate();
     
-    // 为输入框添加回车键支持
-    document.getElementById('year').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') queryTianganDizhi()
-    })
-    
-    document.getElementById('month').addEventListener('change', function() {
-        if (this.value && document.getElementById('day').value) {
-            queryTianganDizhi()
+    // 自动查询今日的天干地支信息
+    queryTianganDizhi();
+}
+
+// ============================================================================
+// 7. 应用初始化和事件绑定模块
+// ============================================================================
+
+/**
+ * 初始化应用
+ * 加载库、绑定事件、设置初始状态
+ */
+async function initApp() {
+    try {
+        // 加载lunisolar和takeSound插件
+        [lunisolar, takeSound] = await Promise.all([loadLunisolar(), loadTakeSound()]);
+        console.log('lunisolar库加载成功');
+        
+        // 按照官方示例：import { takeSound } from '@lunisolar/plugin-takesound'
+        // lunisolar.extend(takeSound)
+        if (takeSound) {
+            lunisolar.extend(takeSound);
+            console.log('✓ takeSound插件扩展成功，现在可以使用纳音功能');
+        } else {
+            console.warn('⚠️ takeSound插件未加载，将使用传统五行计算');
         }
-    })
-    
-    document.getElementById('day').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') queryTianganDizhi()
-    })
-})
+        
+        // 绑定按钮事件
+        const queryBtn = document.getElementById('queryBtn');
+        const todayBtn = document.getElementById('todayBtn');
+        
+        if (queryBtn) {
+            queryBtn.addEventListener('click', queryTianganDizhi);
+            console.log('查询按钮事件绑定成功');
+        }
+        
+        if (todayBtn) {
+            todayBtn.addEventListener('click', setTodayDate);
+            console.log('今日按钮事件绑定成功');
+        }
+        
+        // 页面加载时自动设置今日日期并查询
+        setTodayDate();
+        
+    } catch (error) {
+        console.error('lunisolar库加载失败：', error);
+        alert('系统初始化失败，请刷新页面重试');
+    }
+}
+
+// ============================================================================
+// 8. 页面加载和导出
+// ============================================================================
+
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', initApp);
 
 // 导出函数供HTML调用
 window.queryTianganDizhi = queryTianganDizhi
+window.setTodayDate = setTodayDate
