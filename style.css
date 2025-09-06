@@ -230,3 +230,143 @@ footer {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* 五行穿衣指南样式 */
+.dress-guide-section {
+    margin-top: 30px;
+    padding: 20px;
+    background: linear-gradient(135deg, #f8f9ff 0%, #e8f2ff 100%);
+    border-radius: 12px;
+    border: 1px solid #e1e8ff;
+}
+
+.dress-guide-section h3 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 1.4em;
+    border-bottom: 2px solid #667eea;
+    padding-bottom: 10px;
+}
+
+.analysis-info {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.analysis-info p {
+    margin: 8px 0;
+    color: #34495e;
+    font-size: 0.95em;
+}
+
+.color-levels {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.color-level {
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.color-level.good主用 {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
+    color: white;
+}
+
+.color-level.good次用 {
+    background: linear-gradient(135deg, #4ecdc4 0%, #6ed5cd 100%);
+    color: white;
+}
+
+.color-level.neutral生主 {
+    background: linear-gradient(135deg, #a8e6cf 0%, #7fcdcd 100%);
+    color: #2d3436;
+}
+
+.color-level.neutral生次 {
+    background: linear-gradient(135deg, #b8e6b8 0%, #a8e6a8 100%);
+    color: #2d3436;
+}
+
+.color-level.neutral中性 {
+    background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+    color: #2d3436;
+}
+
+.color-level.neutral {
+    background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
+    color: white;
+}
+
+.color-level.bad {
+    background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
+    color: white;
+}
+
+.color-level.avoid {
+    background: linear-gradient(135deg, #636e72 0%, #2d3436 100%);
+    color: white;
+}
+
+.color-level h4 {
+    margin: 0 0 12px 0;
+    font-size: 1.1em;
+    font-weight: bold;
+}
+
+.color-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.color-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 6px;
+    font-size: 0.9em;
+}
+
+.wuxing-name {
+    font-weight: bold;
+    min-width: 60px;
+}
+
+.color-list {
+    color: #f8f9fa;
+    font-weight: 500;
+}
+
+.description {
+    font-size: 0.85em;
+    opacity: 0.9;
+    font-style: italic;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .dress-guide-section {
+        margin-top: 20px;
+        padding: 15px;
+    }
+    
+    .color-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .wuxing-name {
+        min-width: auto;
+    }
+}
