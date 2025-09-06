@@ -9,15 +9,21 @@
     "start": "npx http-server . -p 3000",
     "dev": "npx http-server . -p 3000 -o",
     "build": "npm run copy-deps",
-    "copy-deps": "mkdir -p lib && cp node_modules/lunisolar/dist/lunisolar.esm.js lib/"
+    "copy-deps": "mkdir -p lib && cp node_modules/lunisolar/dist/lunisolar.esm.js lib/ && cp node_modules/@lunisolar/plugin-takesound/dist/index.mjs lib/takesound.mjs"
   },
   "dependencies": {
+    "@lunisolar/plugin-takesound": "^0.1.2",
     "lunisolar": "^2.0.0"
   },
   "devDependencies": {
     "http-server": "^14.1.1"
   },
-  "keywords": ["万年历", "天干地支", "农历", "lunisolar"],
+  "keywords": [
+    "万年历",
+    "天干地支",
+    "农历",
+    "lunisolar"
+  ],
   "author": "Your Name",
   "license": "MIT"
 }
