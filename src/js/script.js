@@ -861,7 +861,14 @@ function displayDressGuide(dressGuide) {
  * @param {Object} dressGuide - 穿衣指南对象
  */
 function displayDressAnalysis(dressGuide) {
-    const { dayMaster, strength, seasonWuxing, useGods, dressGuide: guide } = dressGuide
+    const { dayMaster, strength, seasonWuxing, useGods, dressGuide: guide, analysis } = dressGuide
+    
+    // 获取分析数据
+    const tenGods = analysis?.tenGods || {};
+    const hiddenStrength = analysis?.hiddenStrength || 0;
+    const dayMasterStrength = analysis?.dayMasterStrength || 0;
+    const reason = analysis?.reason || '传统用神选择';
+    const seasonalAdjustment = analysis?.seasonalAdjustment || {};
     
     // 创建推导过程HTML
     let analysisHTML = `
@@ -869,21 +876,61 @@ function displayDressAnalysis(dressGuide) {
             <h3>穿衣推荐推导过程</h3>
             <div class="analysis-steps">
                 <div class="step">
-                    <h4>1. 日主分析</h4>
+                    <h4>1. 基础信息分析</h4>
                     <p><strong>日主：</strong>${dayMaster}</p>
-                    <p><strong>强弱判断：</strong>${strength}</p>
-                    <p><strong>月令：</strong>${seasonWuxing}</p>
+                    <p><strong>月令：</strong>${seasonWuxing}（基于月地支计算）</p>
+                    <p><strong>日主五行：</strong>${dayMaster}</p>
                 </div>
                 
                 <div class="step">
-                    <h4>2. 用神确定</h4>
+                    <h4>2. 日主强弱分析</h4>
+                    <p><strong>基础强弱：</strong>${dayMasterStrength}</p>
+                    <p><strong>藏干影响：</strong>${hiddenStrength}</p>
+                    <p><strong>综合强弱：</strong>${strength}（${dayMasterStrength} + ${hiddenStrength}）</p>
+                    <div class="strength-explanation">
+                        <p><em>强弱计算：月令权重最高，年、月、日三柱生克关系，加上地支藏干影响</em></p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <h4>3. 十神关系分析</h4>
+                    <div class="ten-gods-analysis">
+                        ${Object.keys(tenGods).length > 0 ? 
+                            Object.entries(tenGods).map(([tenGod, count]) => 
+                                `<span class="ten-god-item">${tenGod}(${count})</span>`
+                            ).join(' ') : 
+                            '<span class="ten-god-item">无十神数据</span>'
+                        }
+                    </div>
+                    <p><em>十神分析：年干、月干与日干的十神关系，影响用神选择</em></p>
+                </div>
+                
+                <div class="step">
+                    <h4>4. 用神确定</h4>
                     <p><strong>主用神：</strong>${useGods.mainUseGod}</p>
                     <p><strong>次用神：</strong>${useGods.subUseGod}</p>
                     <p><strong>忌神：</strong>${useGods.avoidGod}</p>
+                    <p><strong>选择依据：</strong>${reason}</p>
+                    <div class="use-god-explanation">
+                        <p><em>用神选择：基于日主强弱、十神关系和季节调候综合确定</em></p>
+                    </div>
                 </div>
                 
                 <div class="step">
-                    <h4>3. 五行关系分析</h4>
+                    <h4>5. 季节调候分析</h4>
+                    <div class="seasonal-adjustment">
+                        ${Object.keys(seasonalAdjustment).length > 0 ? 
+                            Object.entries(seasonalAdjustment).map(([wuxing, adjustment]) => 
+                                `<span class="adjustment-item">${wuxing}色: ${adjustment > 0 ? '+' : ''}${adjustment}</span>`
+                            ).join(' ') : 
+                            '<span class="adjustment-item">无调候调整</span>'
+                        }
+                    </div>
+                    <p><em>调候用神：根据季节和日主五行进行微调</em></p>
+                </div>
+                
+                <div class="step">
+                    <h4>6. 五行关系分析</h4>
                     <div class="wuxing-relations">
     `
     
@@ -892,6 +939,8 @@ function displayDressAnalysis(dressGuide) {
         const level = data.level;
         const colors = data.colors.join('、');
         const description = data.description;
+        const finalScore = data.finalScore || 0;
+        const seasonalAdj = data.seasonalAdjustment || 0;
         
         // 根据等级推断关系类型
         let relationType = '';
@@ -913,13 +962,21 @@ function displayDressAnalysis(dressGuide) {
         
         analysisHTML += `
             <div class="relation-item">
-                <span class="wuxing-name">${wuxing}色：</span>
-                <span class="relation-type">${relationType}</span>
-                <span class="level-badge level-${level.replace(/[（()]/g, '').replace(/[吉平较不好忌]/g, match => {
-                    const levelMap = {'吉': 'auspicious', '平': 'neutral', '较不好': 'unfavorable', '忌': 'avoid'};
-                    return levelMap[match] || 'neutral';
-                })}">${level}</span>
-                <span class="color-list">${colors}</span>
+                <div class="relation-header">
+                    <span class="wuxing-name">${wuxing}色：</span>
+                    <span class="relation-type">${relationType}</span>
+                    <span class="level-badge level-${level.replace(/[（()]/g, '').replace(/[吉平较不好忌]/g, match => {
+                        const levelMap = {'吉': 'auspicious', '平': 'neutral', '较不好': 'unfavorable', '忌': 'avoid'};
+                        return levelMap[match] || 'neutral';
+                    })}">${level}</span>
+                </div>
+                <div class="relation-details">
+                    <span class="color-list">${colors}</span>
+                    <div class="score-info">
+                        <span class="final-score">最终评分: ${finalScore.toFixed(1)}</span>
+                        ${seasonalAdj !== 0 ? `<span class="seasonal-adj">调候: ${seasonalAdj > 0 ? '+' : ''}${seasonalAdj}</span>` : ''}
+                    </div>
+                </div>
                 <div class="relation-description">${description}</div>
             </div>
         `
@@ -930,11 +987,15 @@ function displayDressAnalysis(dressGuide) {
                 </div>
                 
                 <div class="step">
-                    <h4>4. 推荐总结</h4>
+                    <h4>7. 推荐总结</h4>
                     <div class="recommendation-summary">
                         <p><strong>首选颜色：</strong>${Object.entries(guide).filter(([_, data]) => data.level === '吉（主用）').map(([wuxing, data]) => `${wuxing}色(${data.colors.join('、')})`).join('、') || '无'}</p>
                         <p><strong>次选颜色：</strong>${Object.entries(guide).filter(([_, data]) => data.level === '吉（次用）').map(([wuxing, data]) => `${wuxing}色(${data.colors.join('、')})`).join('、') || '无'}</p>
+                        <p><strong>可选颜色：</strong>${Object.entries(guide).filter(([_, data]) => data.level.includes('平')).map(([wuxing, data]) => `${wuxing}色(${data.colors.join('、')})`).join('、') || '无'}</p>
                         <p><strong>避免颜色：</strong>${Object.entries(guide).filter(([_, data]) => data.level === '忌').map(([wuxing, data]) => `${wuxing}色(${data.colors.join('、')})`).join('、') || '无'}</p>
+                    </div>
+                    <div class="algorithm-info">
+                        <p><em>算法说明：基于传统八字命理学，结合月令、十神、藏干、调候等多因素综合分析</em></p>
                     </div>
                 </div>
             </div>
