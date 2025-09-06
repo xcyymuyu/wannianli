@@ -700,7 +700,7 @@ function queryTianganDizhi(showHour = false) {
         let lunarDate;
         if (showHour) {
             // 显示时辰：当点击今日按钮时
-            lunarDate = date.lunar ? date.format('lY年 lM(lL) lD lH時') : '未查询到';
+            lunarDate = lunisolar().format('lY年 lM(lL) lD lH時');
         } else {
             // 不显示时辰：手动输入时
             lunarDate = date.lunar ? date.format('lY年 lM(lL) lD') : '未查询到';
@@ -714,8 +714,7 @@ function queryTianganDizhi(showHour = false) {
         // 生肖 - 使用lunisolar库的正确API
         let zodiacAnimal = '未查询到生肖';
         try {
-            const dateStr = `${year}/${month}/${day}`;
-            zodiacAnimal = lunisolar(dateStr).format('cZ年')  || '未查询到生肖';
+            zodiacAnimal = lunisolar(new Date(year, month, day)).format('cZ年')  || '未查询到生肖';
         } catch (error) {
             console.warn('获取生肖失败:', error);
         }
@@ -848,7 +847,7 @@ async function initApp() {
         const todayBtn = document.getElementById('todayBtn');
         
         if (queryBtn) {
-            queryBtn.addEventListener('click', queryTianganDizhi);
+            queryBtn.addEventListener('click', () => queryTianganDizhi(false));
             console.log('查询按钮事件绑定成功');
         }
         
