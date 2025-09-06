@@ -661,8 +661,8 @@ function displayDressAnalysis(dressGuide) {
  * 查询天干地支主函数
  * 处理用户输入，调用lunisolar库，显示结果
  */
-function queryTianganDizhi() {
-    console.log('查询函数被调用');
+function queryTianganDizhi(showHour = false) {
+    console.log('查询函数被调用，显示时辰:', showHour);
     const year = parseInt(document.getElementById('year').value);
     const month = parseInt(document.getElementById('month').value);
     const day = parseInt(document.getElementById('day').value);
@@ -696,8 +696,15 @@ function queryTianganDizhi() {
         // 使用lunisolar库的正确API获取数据
         const gregorianDate = `${year}年${month}月${day}日`;
         
-        // 农历信息
-        const lunarDate = date.lunar ? date.lunar.toString() : '未查询到';
+        // 农历信息 - 根据showHour参数决定是否显示时辰
+        let lunarDate;
+        if (showHour) {
+            // 显示时辰：当点击今日按钮时
+            lunarDate = date.lunar ? date.format('lY年 lM(lL) lD lH時') : '未查询到';
+        } else {
+            // 不显示时辰：手动输入时
+            lunarDate = date.lunar ? date.format('lY年 lM(lL) lD') : '未查询到';
+        }
         
         // 八字信息
         const yearGanZhi = date.char8?.year ? date.char8.year.toString() : '未查询到';
@@ -809,8 +816,8 @@ function setTodayDate() {
     document.getElementById('month').value = now.getMonth() + 1;
     document.getElementById('day').value = now.getDate();
     
-    // 自动查询今日的天干地支信息
-    queryTianganDizhi();
+    // 自动查询今日的天干地支信息，显示时辰
+    queryTianganDizhi(true);
 }
 
 // ============================================================================
