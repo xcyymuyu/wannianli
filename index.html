@@ -84,47 +84,11 @@
         
         <footer>
             <p>使用 lunisolar.js 万年历插件实现</p>
-            <p><a href="debug.html" style="color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.8rem;">🔧 部署诊断工具</a></p>
         </footer>
     </div>
     
-    <!-- 使用多个 CDN 源确保加载成功 -->
-    <script>
-        // 检测 lunisolar 是否加载成功，如果失败则使用备用方案
-        function loadLunisolar() {
-            return new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = 'https://unpkg.com/lunisolar@2.6.0/dist/lunisolar.js';
-                script.onload = () => {
-                    if (typeof lunisolar !== 'undefined') {
-                        resolve();
-                    } else {
-                        reject('lunisolar not defined');
-                    }
-                };
-                script.onerror = reject;
-                document.head.appendChild(script);
-            });
-        }
-        
-        // 尝试加载主CDN，失败则使用备用CDN
-        loadLunisolar().catch(() => {
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/lunisolar@2.6.0/dist/lunisolar.js';
-            script.onload = () => {
-                if (typeof lunisolar === 'undefined') {
-                    console.warn('lunisolar库加载失败，使用备用方案');
-                    window.useFallback = true;
-                }
-            };
-            script.onerror = () => {
-                console.warn('所有CDN源均加载失败，使用备用方案');
-                window.useFallback = true;
-            };
-            document.head.appendChild(script);
-        });
-    </script>
-    <script src="fallback.js"></script>
+    <!-- 使用 CDN 版本的 lunisolar -->
+    <script src="https://unpkg.com/lunisolar@2.6.0/dist/lunisolar.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
