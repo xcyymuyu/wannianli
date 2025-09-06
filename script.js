@@ -556,6 +556,103 @@ function displayDressGuide(dressGuide) {
     dressGuideContainer.innerHTML = dressGuideHTML
 }
 
+/**
+ * 显示穿衣推荐推导过程
+ * 在页面上显示详细的穿衣推荐分析过程
+ * @param {Object} dressGuide - 穿衣指南对象
+ */
+function displayDressAnalysis(dressGuide) {
+    const { dayMaster, strength, monthWuxing, useGods, dressGuide: guide } = dressGuide
+    
+    // 创建推导过程HTML
+    let analysisHTML = `
+        <div class="dress-analysis-section">
+            <h3>穿衣推荐推导过程</h3>
+            <div class="analysis-steps">
+                <div class="step">
+                    <h4>1. 日主分析</h4>
+                    <p><strong>日主：</strong>${dayMaster}</p>
+                    <p><strong>强弱判断：</strong>${strength}</p>
+                    <p><strong>月令：</strong>${monthWuxing}</p>
+                </div>
+                
+                <div class="step">
+                    <h4>2. 用神确定</h4>
+                    <p><strong>主用神：</strong>${useGods.mainUseGod}</p>
+                    <p><strong>次用神：</strong>${useGods.subUseGod}</p>
+                    <p><strong>忌神：</strong>${useGods.avoidGod}</p>
+                </div>
+                
+                <div class="step">
+                    <h4>3. 五行关系分析</h4>
+                    <div class="wuxing-relations">
+    `
+    
+    // 添加五行关系分析
+    Object.entries(guide).forEach(([wuxing, data]) => {
+        const level = data.level;
+        const colors = data.colors.join('、');
+        const description = data.description;
+        
+        // 根据等级推断关系类型
+        let relationType = '';
+        if (level.includes('主用')) {
+            relationType = '主用神';
+        } else if (level.includes('次用')) {
+            relationType = '次用神';
+        } else if (level === '忌') {
+            relationType = '忌神';
+        } else if (level.includes('生主')) {
+            relationType = '生主用神';
+        } else if (level.includes('生次')) {
+            relationType = '生次用神';
+        } else if (level.includes('克')) {
+            relationType = '克主用神';
+        } else {
+            relationType = '中性关系';
+        }
+        
+        analysisHTML += `
+            <div class="relation-item">
+                <span class="wuxing-name">${wuxing}色：</span>
+                <span class="relation-type">${relationType}</span>
+                <span class="level-badge level-${level.replace(/[（()]/g, '').replace(/[吉平较不好忌]/g, match => {
+                    const levelMap = {'吉': 'auspicious', '平': 'neutral', '较不好': 'unfavorable', '忌': 'avoid'};
+                    return levelMap[match] || 'neutral';
+                })}">${level}</span>
+                <span class="color-list">${colors}</span>
+                <div class="relation-description">${description}</div>
+            </div>
+        `
+    })
+    
+    analysisHTML += `
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <h4>4. 推荐总结</h4>
+                    <div class="recommendation-summary">
+                        <p><strong>首选颜色：</strong>${Object.entries(guide).filter(([_, data]) => data.level === '吉（主用）').map(([wuxing, data]) => `${wuxing}色(${data.colors.join('、')})`).join('、') || '无'}</p>
+                        <p><strong>次选颜色：</strong>${Object.entries(guide).filter(([_, data]) => data.level === '吉（次用）').map(([wuxing, data]) => `${wuxing}色(${data.colors.join('、')})`).join('、') || '无'}</p>
+                        <p><strong>避免颜色：</strong>${Object.entries(guide).filter(([_, data]) => data.level === '忌').map(([wuxing, data]) => `${wuxing}色(${data.colors.join('、')})`).join('、') || '无'}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `
+    
+    // 查找或创建推导过程容器
+    let analysisContainer = document.getElementById('dressAnalysisContainer')
+    if (!analysisContainer) {
+        analysisContainer = document.createElement('div')
+        analysisContainer.id = 'dressAnalysisContainer'
+        document.getElementById('resultSection').appendChild(analysisContainer)
+    }
+    
+    analysisContainer.innerHTML = analysisHTML
+}
+
 // ============================================================================
 // 6. 主要业务逻辑模块
 // ============================================================================
@@ -651,6 +748,11 @@ function queryTianganDizhi() {
                 // 显示详细的穿衣指南卡片
                 if (typeof displayDressGuide === 'function') {
                     displayDressGuide(dressGuide);
+                }
+                
+                // 显示穿衣推荐推导过程
+                if (typeof displayDressAnalysis === 'function') {
+                    displayDressAnalysis(dressGuide);
                 }
                 
                 console.log('五行穿衣推荐计算完成:', dressGuide);
