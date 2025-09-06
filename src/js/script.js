@@ -1050,20 +1050,27 @@ function queryTianganDizhi(showHour = false) {
     
     try {
         // 创建lunisolar日期对象
-        const date = lunisolar(new Date(year, month - 1, day));
+        const date = lunisolar(new Date(year, month - 1, day, 0, 0, 0));
         console.log('lunisolar对象:', date);
         
         // 使用lunisolar库的正确API获取数据
         const gregorianDate = `${year}年${month}月${day}日`;
         
-        // 农历信息 - 根据showHour参数决定是否显示时辰
+        // 农历信息 - 确保农历日期计算一致，时辰只影响显示格式
         let lunarDate;
+        
+        // 统一使用0点计算农历日期，避免时辰影响农历日期
+        const lunarDateBase = date.format('lY年 lM(lL) lD');
+        
         if (showHour) {
-            // 显示时辰：当点击今日按钮时
-            lunarDate = lunisolar().format('lY年 lM(lL) lD lH時');
+            // 显示时辰：当点击今日按钮时，但农历日期保持一致
+            const currentHour = new Date().getHours();
+            const hourDisplay = Math.floor(currentHour / 2); // 将24小时制转换为12时辰制
+            const hourNames = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+            lunarDate = `${lunarDateBase} ${hourNames[hourDisplay]}時`;
         } else {
             // 不显示时辰：手动输入时
-            lunarDate = date.lunar ? date.format('lY年 lM(lL) lD') : '未查询到';
+            lunarDate = lunarDateBase;
         }
         
         // 八字信息
@@ -1074,7 +1081,7 @@ function queryTianganDizhi(showHour = false) {
         // 生肖 - 使用lunisolar库的正确API
         let zodiacAnimal = '未查询到生肖';
         try {
-            zodiacAnimal = lunisolar(new Date(year, month, day)).format('cZ年')  || '未查询到生肖';
+            zodiacAnimal = lunisolar(new Date(year, month - 1, day)).format('cZ年')  || '未查询到生肖';
         } catch (error) {
             console.warn('获取生肖失败:', error);
         }
