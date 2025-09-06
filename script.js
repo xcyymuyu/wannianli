@@ -311,8 +311,18 @@ function displayDressGuide(dressGuide) {
     levelOrder.forEach(level => {
         const colorsInLevel = Object.entries(guide).filter(([wuxing, data]) => data.level === level)
         if (colorsInLevel.length > 0) {
+            let cssClass = level.replace(/[（）]/g, '')
+                .replace('吉主用', 'good-main')
+                .replace('吉次用', 'good-sub')
+                .replace('平生主', 'neutral-main')
+                .replace('平生次', 'neutral-sub')
+                .replace('平中性', 'neutral-center')
+                .replace('平', 'neutral')
+                .replace('较不好', 'bad')
+                .replace('忌', 'avoid')
+            
             dressGuideHTML += `
-                <div class="color-level ${level.replace(/[（）]/g, '').replace('吉', 'good').replace('平', 'neutral').replace('较不好', 'bad').replace('忌', 'avoid')}">
+                <div class="color-level ${cssClass}">
                     <h4>${levelNames[level]}</h4>
                     <div class="color-items">
             `
@@ -374,6 +384,17 @@ function queryTianganDizhi() {
     
     if (day < 1 || day > 31) {
         alert('日期范围应在1-31之间！')
+        return
+    }
+    
+    // 检查是否需要使用备用方案
+    if (window.useFallback || typeof lunisolar === 'undefined') {
+        console.log('使用备用计算方案')
+        if (typeof fallbackQuery === 'function') {
+            fallbackQuery()
+        } else {
+            alert('计算库加载失败，请刷新页面重试！')
+        }
         return
     }
     
