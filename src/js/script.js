@@ -121,6 +121,44 @@ const naying = [
     '大溪水', '沙中土', '天上火', '石榴木', '大海水'
 ]
 
+// 地支藏干对照表
+const branchHiddenStems = {
+    '子': ['癸'], '丑': ['己', '癸', '辛'], '寅': ['甲', '丙', '戊'],
+    '卯': ['乙'], '辰': ['戊', '乙', '癸'], '巳': ['丙', '庚', '戊'],
+    '午': ['丁', '己'], '未': ['己', '丁', '乙'], '申': ['庚', '壬', '戊'],
+    '酉': ['辛'], '戌': ['戊', '辛', '丁'], '亥': ['壬', '甲']
+}
+
+// 天干五行对照表
+const stemWuxing = {
+    '甲': '木', '乙': '木', '丙': '火', '丁': '火', '戊': '土',
+    '己': '土', '庚': '金', '辛': '金', '壬': '水', '癸': '水'
+}
+
+// 十神关系表
+const tenGods = {
+    '甲': { '甲': '比肩', '乙': '劫财', '丙': '食神', '丁': '伤官', '戊': '偏财', 
+           '己': '正财', '庚': '七杀', '辛': '正官', '壬': '偏印', '癸': '正印' },
+    '乙': { '甲': '劫财', '乙': '比肩', '丙': '伤官', '丁': '食神', '戊': '正财', 
+           '己': '偏财', '庚': '正官', '辛': '七杀', '壬': '正印', '癸': '偏印' },
+    '丙': { '甲': '偏印', '乙': '正印', '丙': '比肩', '丁': '劫财', '戊': '食神', 
+           '己': '伤官', '庚': '偏财', '辛': '正财', '壬': '七杀', '癸': '正官' },
+    '丁': { '甲': '正印', '乙': '偏印', '丙': '劫财', '丁': '比肩', '戊': '伤官', 
+           '己': '食神', '庚': '正财', '辛': '偏财', '壬': '正官', '癸': '七杀' },
+    '戊': { '甲': '七杀', '乙': '正官', '丙': '偏印', '丁': '正印', '戊': '比肩', 
+           '己': '劫财', '庚': '食神', '辛': '伤官', '壬': '偏财', '癸': '正财' },
+    '己': { '甲': '正官', '乙': '七杀', '丙': '正印', '丁': '偏印', '戊': '劫财', 
+           '己': '比肩', '庚': '伤官', '辛': '食神', '壬': '正财', '癸': '偏财' },
+    '庚': { '甲': '偏财', '乙': '正财', '丙': '七杀', '丁': '正官', '戊': '偏印', 
+           '己': '正印', '庚': '比肩', '辛': '劫财', '壬': '食神', '癸': '伤官' },
+    '辛': { '甲': '正财', '乙': '偏财', '丙': '正官', '丁': '七杀', '戊': '正印', 
+           '己': '偏印', '庚': '劫财', '辛': '比肩', '壬': '伤官', '癸': '食神' },
+    '壬': { '甲': '食神', '乙': '伤官', '丙': '偏财', '丁': '正财', '戊': '七杀', 
+           '己': '正官', '庚': '偏印', '辛': '正印', '壬': '比肩', '癸': '劫财' },
+    '癸': { '甲': '伤官', '乙': '食神', '丙': '正财', '丁': '偏财', '戊': '正官', 
+           '己': '七杀', '庚': '正印', '辛': '偏印', '壬': '劫财', '癸': '比肩' }
+}
+
 // ============================================================================
 // 5. 五行穿衣推荐算法模块
 // ============================================================================
@@ -143,29 +181,133 @@ const wuxingRelations = {
     '土': { 克: '水', 被克: '木', 生: '金', 被生: '火' }
 }
 
-// 月令五行对照表（农历月份）
-const monthWuxing = {
-    1: '木',   // 寅月（立春后）
-    2: '木',   // 卯月（惊蛰后）
-    3: '土',   // 辰月（清明后）
-    4: '火',   // 巳月（立夏后）
-    5: '火',   // 午月（芒种后）
-    6: '土',   // 未月（小暑后）
-    7: '金',   // 申月（立秋后）
-    8: '金',   // 酉月（白露后）
-    9: '土',   // 戌月（寒露后）
-    10: '水',  // 亥月（立冬后）
-    11: '水',  // 子月（大雪后）
-    12: '土'   // 丑月（小寒后）
+const monthBranchWuxing = {
+    寅: '木', 
+    卯: '木', 
+    辰: '土', 
+    巳: '火', 
+    午: '火', 
+    未: '土', 
+    申: '金', 
+    酉: '金', 
+    戌: '土', 
+    亥: '水', 
+    子: '水', 
+    丑: '土'
 }
 
 /**
- * 获取月令五行（根据农历月份）
+ * 获取精确月令五行（根据节气）
+ * @param {Object} date - lunisolar日期对象
+ * @returns {string} 五行属性
+ */
+function getAccurateMonthWuxing(char8) {
+    // 使用月地支计算
+    try {
+        const monthBranch = char8.month.branch.toString();
+        if (monthBranch && monthBranchWuxing[monthBranch]) {
+            return monthBranchWuxing[monthBranch];
+        }
+    } catch (error) {
+        console.warn('获取月地支失败，使用农历月份备用方案:', error);
+    }
+}
+
+/**
+ * 获取月令五行（根据农历月份，保持向后兼容）
  * @param {number} lunarMonth - 农历月份
  * @returns {string} 五行属性
  */
 function getMonthWuxing(lunarMonth) {
     return monthWuxing[lunarMonth] || '土'
+}
+
+/**
+ * 分析地支藏干对日主的影响
+ * @param {Object} dayBranch - 日支
+ * @param {Object} monthBranch - 月支
+ * @param {Object} yearBranch - 年支
+ * @param {string} dayWuxing - 日主五行
+ * @returns {number} 藏干对日主的强弱影响分数
+ */
+function analyzeBranchHiddenStems(dayBranch, monthBranch, yearBranch, dayWuxing) {
+    const dayHidden = branchHiddenStems[dayBranch.name] || [];
+    const monthHidden = branchHiddenStems[monthBranch.name] || [];
+    const yearHidden = branchHiddenStems[yearBranch.name] || [];
+    
+    let hiddenStrength = 0;
+    const allHidden = [...dayHidden, ...monthHidden, ...yearHidden];
+    
+    console.log(`分析地支藏干: 日支${dayBranch.name}藏${dayHidden.join('、')}, 月支${monthBranch.name}藏${monthHidden.join('、')}, 年支${yearBranch.name}藏${yearHidden.join('、')}`);
+    
+    allHidden.forEach(hiddenStem => {
+        const hiddenWuxing = stemWuxing[hiddenStem];
+        if (hiddenWuxing === dayWuxing) {
+            hiddenStrength += 0.5; // 藏干同五行，助身
+            console.log(`藏干${hiddenStem}(${hiddenWuxing})与日主同五行，+0.5`);
+        } else if (wuxingRelations[hiddenWuxing].生 === dayWuxing) {
+            hiddenStrength += 0.3; // 藏干生扶日主
+            console.log(`藏干${hiddenStem}(${hiddenWuxing})生扶日主${dayWuxing}，+0.3`);
+        } else if (wuxingRelations[hiddenWuxing].克 === dayWuxing) {
+            hiddenStrength -= 0.3; // 藏干克制日主
+            console.log(`藏干${hiddenStem}(${hiddenWuxing})克制日主${dayWuxing}，-0.3`);
+        }
+    });
+    
+    console.log(`地支藏干总影响: ${hiddenStrength}`);
+    return Math.round(hiddenStrength * 10) / 10;
+}
+
+/**
+ * 分析十神关系
+ * @param {Object} dayStem - 日干
+ * @param {Array} otherStems - 其他天干数组
+ * @returns {Object} 十神分析结果
+ */
+function analyzeTenGods(dayStem, otherStems) {
+    const dayStemName = dayStem.name;
+    const tenGodsAnalysis = {};
+    
+    console.log(`分析十神关系，日干: ${dayStemName}`);
+    
+    otherStems.forEach((stem, index) => {
+        const stemName = stem.name;
+        const tenGod = tenGods[dayStemName][stemName];
+        tenGodsAnalysis[tenGod] = (tenGodsAnalysis[tenGod] || 0) + 1;
+        console.log(`${stemName} -> ${tenGod}`);
+    });
+    
+    console.log('十神统计:', tenGodsAnalysis);
+    return tenGodsAnalysis;
+}
+
+/**
+ * 获取季节调候用神
+ * @param {string} dayWuxing - 日主五行
+ * @param {string} seasonWuxing - 季节五行
+ * @returns {Object} 季节调候调整
+ */
+function getSeasonalAdjustment(dayWuxing, seasonWuxing) {
+    // 根据季节和日主五行确定调候用神
+    const adjustments = {
+        'spring': { '木': 0.2, '水': 0.1, '火': -0.1, '金': -0.2, '土': -0.1 },
+        'summer': { '火': 0.2, '土': 0.1, '水': -0.2, '木': -0.1, '金': -0.1 },
+        'autumn': { '金': 0.2, '土': 0.1, '木': -0.2, '火': -0.1, '水': -0.1 },
+        'winter': { '水': 0.2, '金': 0.1, '火': -0.2, '土': -0.1, '木': -0.1 }
+    };
+    
+    // 根据季节五行确定季节
+    let season = 'spring';
+    if (['火'].includes(seasonWuxing)) season = 'summer';
+    else if (['金'].includes(seasonWuxing)) season = 'autumn';
+    else if (['水'].includes(seasonWuxing)) season = 'winter';
+    else if (['土'].includes(seasonWuxing)) {
+        // 土月需要根据具体节气判断
+        season = 'autumn'; // 默认秋季
+    }
+    
+    console.log(`季节调候: ${season} (${seasonWuxing}), 日主: ${dayWuxing}`);
+    return adjustments[season] || {};
 }
 
 /**
@@ -276,6 +418,86 @@ function determineUseGods(dayWuxing, strength) {
 }
 
 /**
+ * 高级用神选择算法
+ * 考虑十神分析和调候用神
+ * @param {string} dayWuxing - 日主五行
+ * @param {number} strength - 日主强弱分数
+ * @param {Object} tenGodsAnalysis - 十神分析结果
+ * @param {string} seasonWuxing - 季节五行
+ * @returns {Object} 用神信息
+ */
+function determineAdvancedUseGods(dayWuxing, strength, tenGodsAnalysis, seasonWuxing) {
+    // 分析十神情况
+    const hasKillGod = (tenGodsAnalysis['七杀'] || 0) > 0 || (tenGodsAnalysis['正官'] || 0) > 0;
+    const hasWealth = (tenGodsAnalysis['正财'] || 0) > 0 || (tenGodsAnalysis['偏财'] || 0) > 0;
+    const hasSeal = (tenGodsAnalysis['正印'] || 0) > 0 || (tenGodsAnalysis['偏印'] || 0) > 0;
+    const hasFood = (tenGodsAnalysis['食神'] || 0) > 0 || (tenGodsAnalysis['伤官'] || 0) > 0;
+    
+    console.log(`十神分析: 官杀${hasKillGod ? '有' : '无'}, 财星${hasWealth ? '有' : '无'}, 印星${hasSeal ? '有' : '无'}, 食伤${hasFood ? '有' : '无'}`);
+    
+    if (strength > 0) {
+        // 日主旺的情况
+        if (hasKillGod) {
+            // 有官杀，优先用官杀
+            console.log('日主旺有官杀，用官杀');
+            return {
+                mainUseGod: wuxingRelations[dayWuxing].被克, // 用官杀
+                subUseGod: wuxingRelations[dayWuxing].被生,   // 用食伤
+                avoidGod: dayWuxing,
+                reason: '日主旺有官杀，用官杀制身'
+            };
+        } else if (hasWealth) {
+            // 有财星，用财
+            console.log('日主旺有财星，用财');
+            return {
+                mainUseGod: wuxingRelations[dayWuxing].被生, // 用财
+                subUseGod: wuxingRelations[dayWuxing].被克,   // 用官杀
+                avoidGod: dayWuxing,
+                reason: '日主旺有财星，用财泄身'
+            };
+        } else if (hasFood) {
+            // 有食伤，用食伤
+            console.log('日主旺有食伤，用食伤');
+            return {
+                mainUseGod: wuxingRelations[dayWuxing].被生, // 用食伤
+                subUseGod: wuxingRelations[dayWuxing].被克,   // 用官杀
+                avoidGod: dayWuxing,
+                reason: '日主旺有食伤，用食伤泄身'
+            };
+        }
+    } else {
+        // 日主弱的情况
+        if (hasSeal) {
+            // 有印星，用印
+            console.log('日主弱有印星，用印');
+            return {
+                mainUseGod: wuxingRelations[dayWuxing].被生, // 用印
+                subUseGod: dayWuxing,                         // 用比劫
+                avoidGod: wuxingRelations[dayWuxing].克,
+                reason: '日主弱有印星，用印生身'
+            };
+        } else if (hasKillGod) {
+            // 有官杀，用印化杀
+            console.log('日主弱有官杀，用印化杀');
+            return {
+                mainUseGod: wuxingRelations[dayWuxing].被生, // 用印
+                subUseGod: dayWuxing,                         // 用比劫
+                avoidGod: wuxingRelations[dayWuxing].克,
+                reason: '日主弱有官杀，用印化杀生身'
+            };
+        }
+    }
+    
+    // 默认用神选择
+    console.log('使用默认用神选择');
+    const defaultUseGods = determineUseGods(dayWuxing, strength);
+    return {
+        ...defaultUseGods,
+        reason: '默认用神选择'
+    };
+}
+
+/**
  * 获取五行关系
  * @param {string} wuxing1 - 五行1
  * @param {string} wuxing2 - 五行2
@@ -376,10 +598,9 @@ function calculateColorLevel(wuxing, useGods) {
  * 计算五行穿衣指南
  * 主函数，整合所有穿衣推荐算法
  * @param {Object} char8 - 八字信息
- * @param {number} lunarMonth - 农历月份
  * @returns {Object} 完整的穿衣指南
  */
-function calculateDressGuide(char8, lunarMonth) {
+function calculateDressGuide(char8) {
     const dayStem = char8.day.stem
     const yearStem = char8.year.stem
     const monthStem = char8.month.stem
@@ -387,7 +608,7 @@ function calculateDressGuide(char8, lunarMonth) {
     const monthBranch = char8.month.branch
     const dayBranch = char8.day.branch
     const dayWuxing = dayStem.e5.name
-    const monthWuxingValue = getMonthWuxing(lunarMonth)
+    const monthWuxingValue = getAccurateMonthWuxing(char8)
     
     // 分析日主强弱
     const strength = analyzeDayMasterStrength(dayStem, monthWuxingValue, yearStem, monthStem, yearBranch, monthBranch, dayBranch)
@@ -415,6 +636,84 @@ function calculateDressGuide(char8, lunarMonth) {
             avoidGod: useGods.avoidGod
         }
     }
+}
+
+/**
+ * 计算高级五行穿衣指南
+ * 整合所有命理优化算法
+ * @param {Object} char8 - 八字信息
+ * @param {Object} date - lunisolar日期对象
+ * @returns {Object} 完整的穿衣指南
+ */
+function calculateAdvancedDressGuide(char8, date) {
+    const dayStem = char8.day.stem;
+    const yearStem = char8.year.stem;
+    const monthStem = char8.month.stem;
+    const yearBranch = char8.year.branch;
+    const monthBranch = char8.month.branch;
+    const dayBranch = char8.day.branch;
+    const dayWuxing = dayStem.e5.name;
+    
+    console.log('=== 开始高级穿衣指南计算 ===');
+    
+    // 1. 精确月令计算（按节气）
+    const seasonWuxing = getAccurateMonthWuxing(char8);
+    
+    // 2. 地支藏干分析
+    const hiddenStrength = analyzeBranchHiddenStems(dayBranch, monthBranch, yearBranch, dayWuxing);
+    
+    // 3. 十神分析
+    const tenGodsAnalysis = analyzeTenGods(dayStem, [yearStem, monthStem]);
+    
+    // 4. 综合强弱分析
+    const baseStrength = analyzeDayMasterStrength(dayStem, seasonWuxing, yearStem, monthStem, yearBranch, monthBranch, dayBranch);
+    const finalStrength = baseStrength + hiddenStrength;
+    
+    console.log(`综合强弱分析: 基础${baseStrength} + 藏干${hiddenStrength} = ${finalStrength}`);
+    
+    // 5. 高级用神选择
+    const useGods = determineAdvancedUseGods(dayWuxing, finalStrength, tenGodsAnalysis, seasonWuxing);
+    
+    // 6. 季节调候
+    const seasonalAdjustment = getSeasonalAdjustment(dayWuxing, seasonWuxing);
+    
+    // 7. 计算最终穿衣指南
+    const dressGuide = {};
+    for (const wuxing of ['金', '木', '水', '火', '土']) {
+        const baseLevel = calculateColorLevel(wuxing, useGods);
+        const adjustment = seasonalAdjustment[wuxing] || 0;
+        
+        dressGuide[wuxing] = {
+            ...baseLevel,
+            seasonalAdjustment: adjustment,
+            finalScore: (baseLevel.level === '吉（主用）' ? 10 : 
+                        baseLevel.level === '吉（次用）' ? 8 :
+                        baseLevel.level.includes('平') ? 5 :
+                        baseLevel.level === '较不好' ? 2 : 0) + adjustment * 10
+        };
+    }
+    
+    console.log('=== 高级穿衣指南计算完成 ===');
+    
+    return {
+        dayMaster: dayWuxing,
+        strength: finalStrength > 0 ? '旺' : finalStrength < 0 ? '弱' : '平',
+        seasonWuxing: seasonWuxing,
+        tenGods: tenGodsAnalysis,
+        useGods: useGods,
+        dressGuide: dressGuide,
+        analysis: {
+            seasonWuxing: seasonWuxing,
+            dayMasterStrength: finalStrength,
+            hiddenStrength: hiddenStrength,
+            tenGods: tenGodsAnalysis,
+            mainUseGod: useGods.mainUseGod,
+            subUseGod: useGods.subUseGod,
+            avoidGod: useGods.avoidGod,
+            reason: useGods.reason,
+            seasonalAdjustment: seasonalAdjustment
+        }
+    };
 }
 
 /**
@@ -462,7 +761,7 @@ function generateDressRecommendationText(dressGuide) {
  * @param {Object} dressGuide - 穿衣指南对象
  */
 function displayDressGuide(dressGuide) {
-    const { dayMaster, strength, monthWuxing, useGods, dressGuide: guide } = dressGuide
+    const { dayMaster, strength, seasonWuxing, useGods, dressGuide: guide } = dressGuide
     
     // 创建穿衣指南HTML
     let dressGuideHTML = `
@@ -470,7 +769,7 @@ function displayDressGuide(dressGuide) {
             <h3>五行穿衣指南</h3>
             <div class="analysis-info">
                 <p><strong>日主：</strong>${dayMaster}（${strength}）</p>
-                <p><strong>月令：</strong>${monthWuxing}</p>
+                <p><strong>月令：</strong>${seasonWuxing}</p>
                 <p><strong>主用神：</strong>${useGods.mainUseGod} | <strong>次用神：</strong>${useGods.subUseGod} | <strong>忌神：</strong>${useGods.avoidGod}</p>
             </div>
             <div class="color-cards">
@@ -562,7 +861,7 @@ function displayDressGuide(dressGuide) {
  * @param {Object} dressGuide - 穿衣指南对象
  */
 function displayDressAnalysis(dressGuide) {
-    const { dayMaster, strength, monthWuxing, useGods, dressGuide: guide } = dressGuide
+    const { dayMaster, strength, seasonWuxing, useGods, dressGuide: guide } = dressGuide
     
     // 创建推导过程HTML
     let analysisHTML = `
@@ -573,7 +872,7 @@ function displayDressAnalysis(dressGuide) {
                     <h4>1. 日主分析</h4>
                     <p><strong>日主：</strong>${dayMaster}</p>
                     <p><strong>强弱判断：</strong>${strength}</p>
-                    <p><strong>月令：</strong>${monthWuxing}</p>
+                    <p><strong>月令：</strong>${seasonWuxing}</p>
                 </div>
                 
                 <div class="step">
@@ -723,10 +1022,12 @@ function queryTianganDizhi(showHour = false) {
         let wuxingInfo = '未查询到五行';
         try {
             // 优先使用takeSound插件获取纳音五行
-            if (date.char8?.day?.takeSound) {
-                wuxingInfo = date.char8?.day?.takeSound;
-                console.log(`从takeSound插件获取纳音五行: ${wuxingInfo}`);
-            }
+            // if (date.char8?.day?.takeSound) {
+            //     wuxingInfo = date.char8?.day?.takeSound;
+            //     console.log(`从takeSound插件获取纳音五行: ${wuxingInfo}`);
+            // }
+            // 获取日五行
+            wuxingInfo = date.char8?.year?.stem?.e5?.name || date.char8?.year?.branch?.e5?.name;
         } catch (error) {
             console.warn('获取五行信息失败:', error);
             wuxingInfo = '未查询到五行';
@@ -735,12 +1036,10 @@ function queryTianganDizhi(showHour = false) {
         // 穿衣推荐 - 基于天干地支数据计算
         let dressRecommendation = '未查询到';
         try {
-            // 获取农历月份用于月令计算
-            const lunarMonth = date.lunar ? date.lunar.month : month;
-            
-            // 调用script.js中的函数计算五行穿衣指南
-            if (typeof calculateDressGuide === 'function') {
-                const dressGuide = calculateDressGuide(date.char8, lunarMonth);
+            // 优先使用高级算法
+            if (typeof calculateAdvancedDressGuide === 'function') {
+                console.log('使用高级穿衣指南算法');
+                const dressGuide = calculateAdvancedDressGuide(date.char8, date);
                 
                 // 生成穿衣推荐文本
                 if (typeof generateDressRecommendationText === 'function') {
@@ -761,7 +1060,32 @@ function queryTianganDizhi(showHour = false) {
                     displayDressAnalysis(dressGuide);
                 }
                 
-                console.log('五行穿衣推荐计算完成:', dressGuide);
+                console.log('高级五行穿衣推荐计算完成:', dressGuide);
+            } else if (typeof calculateDressGuide === 'function') {
+                // 备用：使用基础算法
+                console.log('使用基础穿衣指南算法');
+                const lunarMonth = date.lunar ? date.lunar.month : month;
+                const dressGuide = calculateDressGuide(date.char8, lunarMonth);
+                
+                // 生成穿衣推荐文本
+                if (typeof generateDressRecommendationText === 'function') {
+                    dressRecommendation = generateDressRecommendationText(dressGuide);
+                } else {
+                    const { dayMaster, strength, useGods } = dressGuide;
+                    dressRecommendation = `日主${dayMaster}（${strength}），主用神：${useGods.mainUseGod}，次用神：${useGods.subUseGod}`;
+                }
+                
+                // 显示详细的穿衣指南卡片
+                if (typeof displayDressGuide === 'function') {
+                    displayDressGuide(dressGuide);
+                }
+                
+                // 显示穿衣推荐推导过程
+                if (typeof displayDressAnalysis === 'function') {
+                    displayDressAnalysis(dressGuide);
+                }
+                
+                console.log('基础五行穿衣推荐计算完成:', dressGuide);
             } else {
                 console.warn('calculateDressGuide函数未找到，请确保script.js已正确加载');
                 dressRecommendation = '函数未加载';
