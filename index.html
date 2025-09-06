@@ -52,7 +52,7 @@
         const basePath = getBasePath();
         const cssLink = document.createElement('link');
         cssLink.rel = 'stylesheet';
-        cssLink.href = basePath + 'style.css';
+        cssLink.href = basePath + 'src/css/style.css';
         cssLink.onerror = function() {
             console.log('外部CSS加载失败，使用内联样式');
         };

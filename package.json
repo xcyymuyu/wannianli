@@ -2,7 +2,7 @@
   "name": "wannianli",
   "version": "1.0.0",
   "description": "天干地支查询工具 - 基于万年历的五行穿衣推荐系统",
-  "main": "public/index.html",
+  "main": "index.html",
   "scripts": {
     "start": "python3 -m http.server 8000",
     "dev": "python3 -m http.server 8000",
