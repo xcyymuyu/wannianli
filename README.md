@@ -18,15 +18,49 @@
 - **万年历插件**: lunisolar.js
 - **构建工具**: npm + http-server
 
-## 安装和使用
+## 🚀 快速部署
 
-### 1. 安装依赖
+### GitHub Pages 部署（推荐）
+
+#### 方法一：自动化脚本部署
+```bash
+# 1. 克隆或下载项目
+git clone https://github.com/你的用户名/wannianli.git
+cd wannianli
+
+# 2. 运行部署脚本
+./deploy.sh
+```
+
+#### 方法二：手动部署
+```bash
+# 1. 初始化 Git 仓库（如果还没有）
+git init
+git add .
+git commit -m "Initial commit"
+
+# 2. 添加远程仓库
+git remote add origin https://github.com/你的用户名/wannianli.git
+
+# 3. 推送代码
+git push -u origin main
+
+# 4. 在 GitHub 仓库设置中启用 Pages
+# Settings > Pages > Deploy from a branch > main
+```
+
+#### 方法三：GitHub Actions 自动部署
+项目已配置 GitHub Actions，推送代码后会自动部署到 GitHub Pages。
+
+### 本地开发
+
+#### 1. 安装依赖
 
 ```bash
 npm install
 ```
 
-### 2. 启动开发服务器
+#### 2. 启动开发服务器
 
 ```bash
 npm start
@@ -38,7 +72,7 @@ npm start
 npm run dev
 ```
 
-### 3. 访问应用
+#### 3. 访问应用
 
 在浏览器中打开 `http://localhost:3000`
 
