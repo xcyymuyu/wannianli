@@ -1,29 +1,35 @@
 {
-  "name": "wannianli-tiangan-dizhi",
+  "name": "wannianli",
   "version": "1.0.0",
-  "description": "天干地支查询工具 - 基于万年历插件",
-  "type": "module",
-  "main": "index.html",
-  "homepage": "https://YOUR_USERNAME.github.io/wannianli",
+  "description": "天干地支查询工具 - 基于万年历的五行穿衣推荐系统",
+  "main": "public/index.html",
   "scripts": {
-    "start": "npx http-server . -p 3000",
-    "dev": "npx http-server . -p 3000 -o",
-    "build": "npm run copy-deps",
-    "copy-deps": "mkdir -p lib && cp node_modules/lunisolar/dist/lunisolar.esm.js lib/ && cp node_modules/@lunisolar/plugin-takesound/dist/index.mjs lib/takesound.mjs"
-  },
-  "dependencies": {
-    "@lunisolar/plugin-takesound": "^0.1.2",
-    "lunisolar": "^2.0.0"
-  },
-  "devDependencies": {
-    "http-server": "^14.1.1"
+    "start": "python3 -m http.server 8000",
+    "dev": "python3 -m http.server 8000",
+    "build": "echo 'No build process needed for static site'",
+    "deploy": "echo 'Deploy to your preferred hosting service'"
   },
   "keywords": [
     "万年历",
     "天干地支",
+    "五行",
+    "穿衣推荐",
     "农历",
     "lunisolar"
   ],
   "author": "Your Name",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "lunisolar": "^2.0.0",
+    "@lunisolar/plugin-takesound": "^0.1.2"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/wannianli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/wannianli/issues"
+  },
+  "homepage": "https://github.com/yourusername/wannianli#readme"
 }

@@ -1,0 +1,29 @@
+{
+  "server": {
+    "port": 8000,
+    "host": "localhost"
+  },
+  "libraries": {
+    "lunisolar": {
+      "version": "2.0.0",
+      "sources": [
+        "https://cdn.jsdelivr.net/npm/lunisolar@2.0.0/dist/lunisolar.esm.js",
+        "https://unpkg.com/lunisolar@2.0.0/dist/lunisolar.esm.js",
+        "./src/assets/lib/lunisolar.esm.js"
+      ]
+    },
+    "takesound": {
+      "version": "0.1.2",
+      "sources": [
+        "https://cdn.jsdelivr.net/npm/@lunisolar/plugin-takesound@0.1.2/dist/index.mjs",
+        "https://unpkg.com/@lunisolar/plugin-takesound@0.1.2/dist/index.mjs",
+        "./src/assets/lib/takesound.mjs"
+      ]
+    }
+  },
+  "features": {
+    "dressRecommendation": true,
+    "detailedAnalysis": true,
+    "responsiveDesign": true
+  }
+}

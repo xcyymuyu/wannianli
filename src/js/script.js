@@ -27,7 +27,7 @@ const loadLunisolar = async () => {
     const sources = [
         'https://cdn.jsdelivr.net/npm/lunisolar@2.0.0/dist/lunisolar.esm.js',
         'https://unpkg.com/lunisolar@2.0.0/dist/lunisolar.esm.js',
-        jsBasePath + 'lib/lunisolar.esm.js'
+        jsBasePath + 'src/assets/lib/lunisolar.esm.js'
     ];
     
     for (const source of sources) {
@@ -55,7 +55,7 @@ const loadTakeSound = async () => {
     const takeSoundSources = [
         'https://cdn.jsdelivr.net/npm/@lunisolar/plugin-takesound@0.1.2/dist/index.mjs',
         'https://unpkg.com/@lunisolar/plugin-takesound@0.1.2/dist/index.mjs',
-        jsBasePath + 'lib/takesound.mjs'
+        jsBasePath + 'src/assets/lib/takesound.mjs'
     ];
     
     for (const source of takeSoundSources) {
