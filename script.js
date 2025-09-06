@@ -1,4 +1,5 @@
-import lunisolar from './node_modules/lunisolar/dist/lunisolar.esm.js'
+// 使用 CDN 版本，确保部署后能正常加载
+// lunisolar 将通过 CDN 加载，作为全局变量使用
 
 // 天干地支对照表
 const tiangan = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']
