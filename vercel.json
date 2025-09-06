@@ -1,6 +1,8 @@
 {
   "version": 2,
   "name": "wannianli-dress-guide",
+  "buildCommand": "echo 'No build needed for static site'",
+  "outputDirectory": ".",
   "builds": [
     {
       "src": "index.html",
