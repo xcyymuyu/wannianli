@@ -1,0 +1,19 @@
+{
+  "name": "wannianli-tiangan-dizhi",
+  "version": "1.0.0",
+  "description": "天干地支查询工具 - 基于万年历插件",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server . -p 3000",
+    "dev": "npx http-server . -p 3000 -o"
+  },
+  "dependencies": {
+    "lunisolar": "^2.0.0"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "keywords": ["万年历", "天干地支", "农历", "lunisolar"],
+  "author": "Your Name",
+  "license": "MIT"
+}

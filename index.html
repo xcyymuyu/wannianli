@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天干地支查询工具</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>天干地支查询工具</h1>
+            <p>基于万年历插件，输入年月日查询对应的天干地支</p>
+        </header>
+        
+        <main>
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="year">年份：</label>
+                    <input type="number" id="year" placeholder="请输入年份" min="1900" max="2100">
+                </div>
+                
+                <div class="input-group">
+                    <label for="month">月份：</label>
+                    <select id="month">
+                        <option value="">请选择月份</option>
+                        <option value="1">1月</option>
+                        <option value="2">2月</option>
+                        <option value="3">3月</option>
+                        <option value="4">4月</option>
+                        <option value="5">5月</option>
+                        <option value="6">6月</option>
+                        <option value="7">7月</option>
+                        <option value="8">8月</option>
+                        <option value="9">9月</option>
+                        <option value="10">10月</option>
+                        <option value="11">11月</option>
+                        <option value="12">12月</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label for="day">日期：</label>
+                    <input type="number" id="day" placeholder="请输入日期" min="1" max="31">
+                </div>
+                
+                <button id="queryBtn" onclick="queryTianganDizhi()">查询天干地支</button>
+            </div>
+            
+            <div class="result-section" id="resultSection" style="display: none;">
+                <h2>查询结果</h2>
+                <div class="result-card">
+                    <div class="result-item">
+                        <span class="label">公历日期：</span>
+                        <span class="value" id="gregorianDate"></span>
+                    </div>
+                    <div class="result-item">
+                        <span class="label">农历日期：</span>
+                        <span class="value" id="lunarDate"></span>
+                    </div>
+                    <div class="result-item highlight">
+                        <span class="label">年柱天干地支：</span>
+                        <span class="value" id="yearTianganDizhi"></span>
+                    </div>
+                    <div class="result-item highlight">
+                        <span class="label">月柱天干地支：</span>
+                        <span class="value" id="monthTianganDizhi"></span>
+                    </div>
+                    <div class="result-item highlight">
+                        <span class="label">日柱天干地支：</span>
+                        <span class="value" id="dayTianganDizhi"></span>
+                    </div>
+                    <div class="result-item">
+                        <span class="label">生肖：</span>
+                        <span class="value" id="zodiac"></span>
+                    </div>
+                    <div class="result-item">
+                        <span class="label">五行：</span>
+                        <span class="value" id="wuxing"></span>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <p>使用 lunisolar.js 万年历插件实现</p>
+        </footer>
+    </div>
+    
+    <script type="module" src="script.js"></script>
+</body>
+</html>
