@@ -1,4 +1,5 @@
-import lunisolar from './lib/lunisolar.esm.js'
+// 使用全局加载的lunisolar库
+const lunisolar = window.lunisolar;
 
 // 天干地支对照表
 const tiangan = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']

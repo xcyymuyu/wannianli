@@ -95,7 +95,7 @@
                     <input type="number" id="day" placeholder="请输入日期" min="1" max="31">
                 </div>
                 
-                <button id="queryBtn" onclick="queryTianganDizhi()">查询天干地支</button>
+                <button id="queryBtn">查询天干地支</button>
             </div>
             
             <div class="result-section" id="resultSection" style="display: none;">
@@ -139,15 +139,45 @@
     </div>
     
     <script>
-        // 动态加载JavaScript模块
+        // 获取正确的基础路径
         const basePath = window.location.hostname.includes('github.io') ? 
             '/' + window.location.pathname.split('/').filter(Boolean)[0] + '/' : 
             './';
         
-        const script = document.createElement('script');
-        script.type = 'module';
-        script.src = basePath + 'script.js';
-        document.body.appendChild(script);
+        // 首先加载lunisolar库
+        const lunisolarScript = document.createElement('script');
+        lunisolarScript.type = 'module';
+        lunisolarScript.textContent = `
+            import lunisolar from '${basePath}lib/lunisolar.esm.js';
+            window.lunisolar = lunisolar;
+            console.log('lunisolar库加载完成');
+        `;
+        document.head.appendChild(lunisolarScript);
+        
+        // 然后加载主脚本
+        const mainScript = document.createElement('script');
+        mainScript.src = basePath + 'script.js';
+        
+        // 确保脚本加载完成后绑定按钮事件
+        mainScript.onload = function() {
+            console.log('主脚本加载完成');
+            // 等待一下确保函数定义完成
+            setTimeout(() => {
+                const queryBtn = document.getElementById('queryBtn');
+                if (queryBtn && typeof window.queryTianganDizhi === 'function') {
+                    queryBtn.addEventListener('click', window.queryTianganDizhi);
+                    console.log('查询按钮事件绑定成功');
+                } else {
+                    console.error('查询函数未找到');
+                }
+            }, 100);
+        };
+        
+        mainScript.onerror = function() {
+            console.error('主脚本加载失败');
+        };
+        
+        document.body.appendChild(mainScript);
     </script>
 </body>
 </html>
