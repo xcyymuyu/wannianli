@@ -2,6 +2,7 @@
   "name": "wannianli-tiangan-dizhi",
   "version": "1.0.0",
   "description": "天干地支查询工具 - 基于万年历插件",
+  "type": "module",
   "main": "index.html",
   "scripts": {
     "start": "npx http-server . -p 3000",

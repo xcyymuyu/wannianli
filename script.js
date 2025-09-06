@@ -4,7 +4,7 @@ import lunisolar from './node_modules/lunisolar/dist/lunisolar.esm.js'
 const tiangan = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']
 const dizhi = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
 const zodiac = ['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪']
-const wuxing = ['金', '木', '水', '火', '土']
+const wuxing = ['木', '火', '土', '金', '水']
 
 // 五行纳音对照表（简化版）
 const naying = [
@@ -63,20 +63,17 @@ function queryTianganDizhi() {
         
         // 获取天干地支信息 - 使用char8属性
         const char8 = ls.char8
-        const yearGanZhi = char8.year.toString()
-        const monthGanZhi = char8.month.toString()
-        const dayGanZhi = char8.day.toString()
+        const yearGanZhi = char8.year.name
+        const monthGanZhi = char8.month.name
+        const dayGanZhi = char8.day.name
         
         // 获取生肖
         const zodiacIndex = (lunarYear - 4) % 12
         const zodiacIndexFixed = zodiacIndex < 0 ? zodiacIndex + 12 : zodiacIndex
         
-        // 获取五行（基于年柱）
-        const yearGan = yearGanZhi.charAt(0)
-        const yearZhi = yearGanZhi.charAt(1)
-        const yearTianganIndex = tiangan.indexOf(yearGan)
-        const yearDizhiIndex = dizhi.indexOf(yearZhi)
-        const wuxingIndex = Math.floor((yearTianganIndex + yearDizhiIndex) / 2) % 5
+        // 获取五行（基于年柱天干）
+        const yearStem = char8.year.stem
+        const wuxingName = yearStem.e5.name
         
         // 显示结果
         document.getElementById('gregorianDate').textContent = `${year}年${month}月${day}日`
@@ -85,7 +82,7 @@ function queryTianganDizhi() {
         document.getElementById('monthTianganDizhi').textContent = `${monthGanZhi}月`
         document.getElementById('dayTianganDizhi').textContent = `${dayGanZhi}日`
         document.getElementById('zodiac').textContent = zodiac[zodiacIndexFixed]
-        document.getElementById('wuxing').textContent = wuxing[wuxingIndex]
+        document.getElementById('wuxing').textContent = wuxingName
         
         // 显示结果区域
         document.getElementById('resultSection').style.display = 'block'
