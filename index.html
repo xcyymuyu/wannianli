@@ -4,6 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>天干地支查询工具</title>
+    <!-- GitHub Pages 路径自动检测 -->
+    <script>
+        // 检测是否在GitHub Pages环境，并设置正确的base路径
+        (function() {
+            const hostname = window.location.hostname;
+            const pathname = window.location.pathname;
+            
+            if (hostname.includes('github.io') && pathname !== '/') {
+                // 如果是GitHub Pages且不在根目录，设置base标签
+                const segments = pathname.split('/').filter(Boolean);
+                if (segments.length > 0) {
+                    const basePath = '/' + segments[0] + '/';
+                    const base = document.createElement('base');
+                    base.href = basePath;
+                    document.head.appendChild(base);
+                }
+            }
+        })();
+    </script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -87,6 +106,6 @@
         </footer>
     </div>
     
-    <script type="module" src="script.js"></script>
+    <script type="module" src="./script.js"></script>
 </body>
 </html>
