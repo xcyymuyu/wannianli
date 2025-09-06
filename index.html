@@ -138,46 +138,80 @@
         </footer>
     </div>
     
-    <script>
-        // 获取正确的基础路径
-        const basePath = window.location.hostname.includes('github.io') ? 
+    <!-- 直接使用script标签加载，简化加载流程 -->
+    <script type="module">
+        // 获取正确的基础路径（使用不同的变量名避免冲突）
+        const jsBasePath = window.location.hostname.includes('github.io') ? 
             '/' + window.location.pathname.split('/').filter(Boolean)[0] + '/' : 
             './';
         
-        // 首先加载lunisolar库
-        const lunisolarScript = document.createElement('script');
-        lunisolarScript.type = 'module';
-        lunisolarScript.textContent = `
-            import lunisolar from '${basePath}lib/lunisolar.esm.js';
-            window.lunisolar = lunisolar;
-            console.log('lunisolar库加载完成');
-        `;
-        document.head.appendChild(lunisolarScript);
-        
-        // 然后加载主脚本
-        const mainScript = document.createElement('script');
-        mainScript.src = basePath + 'script.js';
-        
-        // 确保脚本加载完成后绑定按钮事件
-        mainScript.onload = function() {
-            console.log('主脚本加载完成');
-            // 等待一下确保函数定义完成
-            setTimeout(() => {
-                const queryBtn = document.getElementById('queryBtn');
-                if (queryBtn && typeof window.queryTianganDizhi === 'function') {
-                    queryBtn.addEventListener('click', window.queryTianganDizhi);
-                    console.log('查询按钮事件绑定成功');
-                } else {
-                    console.error('查询函数未找到');
+        // 动态导入lunisolar并直接定义查询功能
+        import(jsBasePath + 'lib/lunisolar.esm.js').then(module => {
+            const lunisolar = module.default;
+            console.log('lunisolar库加载成功');
+            
+            // 定义查询函数
+            window.queryTianganDizhi = function() {
+                console.log('查询函数被调用');
+                const year = parseInt(document.getElementById('year').value);
+                const month = parseInt(document.getElementById('month').value);
+                const day = parseInt(document.getElementById('day').value);
+                
+                // 验证输入
+                if (!year || !month || !day) {
+                    alert('请输入完整的年月日信息');
+                    return;
                 }
-            }, 100);
-        };
-        
-        mainScript.onerror = function() {
-            console.error('主脚本加载失败');
-        };
-        
-        document.body.appendChild(mainScript);
+                
+                if (year < 1900 || year > 2100) {
+                    alert('年份范围应在1900-2100之间');
+                    return;
+                }
+                
+                if (month < 1 || month > 12) {
+                    alert('月份范围应在1-12之间');
+                    return;
+                }
+                
+                if (day < 1 || day > 31) {
+                    alert('日期范围应在1-31之间');
+                    return;
+                }
+                
+                try {
+                    // 创建lunisolar日期对象
+                    const date = lunisolar(new Date(year, month - 1, day));
+                    
+                    // 显示结果
+                    document.getElementById('gregorianDate').textContent = `${year}年${month}月${day}日`;
+                    document.getElementById('lunarDate').textContent = date.lunar.toString();
+                    document.getElementById('yearTianganDizhi').textContent = date.char8.year;
+                    document.getElementById('monthTianganDizhi').textContent = date.char8.month;
+                    document.getElementById('dayTianganDizhi').textContent = date.char8.day;
+                    document.getElementById('zodiac').textContent = date.animal;
+                    document.getElementById('wuxing').textContent = '根据天干地支推算';
+                    
+                    // 显示结果区域
+                    document.getElementById('resultSection').style.display = 'block';
+                    
+                    console.log('查询结果显示成功');
+                } catch (error) {
+                    console.error('查询出错：', error);
+                    alert('查询出错，请检查输入的日期是否有效');
+                }
+            };
+            
+            // 绑定按钮事件
+            const queryBtn = document.getElementById('queryBtn');
+            if (queryBtn) {
+                queryBtn.addEventListener('click', window.queryTianganDizhi);
+                console.log('查询按钮事件绑定成功');
+            }
+            
+        }).catch(error => {
+            console.error('lunisolar库加载失败：', error);
+            alert('系统初始化失败，请刷新页面重试');
+        });
     </script>
 </body>
 </html>
