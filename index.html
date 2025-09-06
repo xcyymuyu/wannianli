@@ -140,14 +140,34 @@
     
     <!-- 直接使用script标签加载，简化加载流程 -->
     <script type="module">
-        // 获取正确的基础路径（使用不同的变量名避免冲突）
-        const jsBasePath = window.location.hostname.includes('github.io') ? 
-            '/' + window.location.pathname.split('/').filter(Boolean)[0] + '/' : 
-            './';
+        // 使用CDN作为主要来源，本地文件作为备用
+        const loadLunisolar = async () => {
+            const jsBasePath = window.location.hostname.includes('github.io') ? 
+                '/' + window.location.pathname.split('/').filter(Boolean)[0] + '/' : 
+                './';
+            
+            // 尝试多个来源加载lunisolar
+            const sources = [
+                'https://cdn.jsdelivr.net/npm/lunisolar@2.0.0/dist/lunisolar.esm.js',
+                'https://unpkg.com/lunisolar@2.0.0/dist/lunisolar.esm.js',
+                jsBasePath + 'lib/lunisolar.esm.js'
+            ];
+            
+            for (const source of sources) {
+                try {
+                    console.log(`尝试从 ${source} 加载lunisolar...`);
+                    const module = await import(source);
+                    console.log(`✓ 成功从 ${source} 加载lunisolar`);
+                    return module.default;
+                } catch (error) {
+                    console.warn(`✗ 从 ${source} 加载失败:`, error.message);
+                }
+            }
+            throw new Error('所有lunisolar加载源都失败了');
+        };
         
         // 动态导入lunisolar并直接定义查询功能
-        import(jsBasePath + 'lib/lunisolar.esm.js').then(module => {
-            const lunisolar = module.default;
+        loadLunisolar().then(lunisolar => {
             console.log('lunisolar库加载成功');
             
             // 定义查询函数
