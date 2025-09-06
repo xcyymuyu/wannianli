@@ -6,18 +6,13 @@
   "main": "index.html",
   "scripts": {
     "start": "npx http-server . -p 3000",
-    "dev": "npx http-server . -p 3000 -o",
-    "build": "echo 'Static site - no build needed'",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d .",
-    "deploy:github": "git add . && git commit -m 'Deploy to GitHub Pages' && git push origin main"
+    "dev": "npx http-server . -p 3000 -o"
   },
   "dependencies": {
     "lunisolar": "^2.0.0"
   },
   "devDependencies": {
-    "http-server": "^14.1.1",
-    "gh-pages": "^6.1.0"
+    "http-server": "^14.1.1"
   },
   "keywords": ["万年历", "天干地支", "农历", "lunisolar"],
   "author": "Your Name",
