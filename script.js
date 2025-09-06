@@ -458,7 +458,7 @@ function generateDressRecommendationText(dressGuide) {
 
 /**
  * 显示穿衣指南
- * 在页面上显示详细的穿衣指南HTML
+ * 在页面上显示详细的穿衣指南HTML，按照卡片式布局
  * @param {Object} dressGuide - 穿衣指南对象
  */
 function displayDressGuide(dressGuide) {
@@ -473,10 +473,10 @@ function displayDressGuide(dressGuide) {
                 <p><strong>月令：</strong>${monthWuxing}</p>
                 <p><strong>主用神：</strong>${useGods.mainUseGod} | <strong>次用神：</strong>${useGods.subUseGod} | <strong>忌神：</strong>${useGods.avoidGod}</p>
             </div>
-            <div class="color-levels">
+            <div class="color-cards">
     `
     
-    // 按等级分组显示
+    // 按等级分组显示，使用卡片式布局
     const levelOrder = ['吉（主用）', '吉（次用）', '平（生主）', '平（生次）', '平（中性）', '平', '较不好', '忌']
     const levelNames = {
         '吉（主用）': '吉（首选）',
@@ -489,29 +489,54 @@ function displayDressGuide(dressGuide) {
         '忌': '不宜'
     }
     
+    // 五行对应的高级颜色（统一使用一种颜色）
+    const wuxingColors = {
+        '金': '#D4AF37',  // 金色系 - 经典金色（高级感）
+        '木': '#228B22',  // 木色系 - 森林绿（自然高级）
+        '水': '#87CEEB',  // 水色系 - 浅蓝色（清新高级）
+        '火': '#DC143C',  // 火色系 - 深红色（热情高级）
+        '土': '#CD853F'   // 土色系 - 秘鲁色（温暖高级）
+    }
+    
+    // 根据五行属性获取统一颜色
+    const getWuxingColor = (wuxing) => {
+        return wuxingColors[wuxing] || '#f8f9fa'
+    }
+    
+    // 根据五行属性确定最佳文字颜色（高级配色）
+    const getTextColorForWuxing = (wuxing) => {
+        const textColors = {
+            '金': '#8B4513',  // 马鞍棕色 - 在金色背景上高级
+            '木': '#F0FFF0',  // 蜜瓜色 - 在绿色背景上清新
+            '水': '#1E3A8A',  // 深蓝色 - 在浅蓝色背景上清晰
+            '火': '#FFF8DC',  // 玉米丝色 - 在红色背景上温暖
+            '土': '#F5F5DC'   // 米色 - 在土色背景上自然
+        }
+        return textColors[wuxing] || '#8B4513'
+    }
+    
     levelOrder.forEach(level => {
         const colorsInLevel = Object.entries(guide).filter(([wuxing, data]) => data.level === level)
         if (colorsInLevel.length > 0) {
-            dressGuideHTML += `
-                <div class="color-level ${level.replace(/[（）]/g, '').replace('吉', 'good').replace('平', 'neutral').replace('较不好', 'bad').replace('忌', 'avoid')}">
-                    <h4>${levelNames[level]}</h4>
-                    <div class="color-items">
-            `
-            
             colorsInLevel.forEach(([wuxing, data]) => {
+                // 根据五行属性获取统一的高级颜色
+                const wuxingColor = getWuxingColor(wuxing)
+                // 根据五行属性确定文字颜色
+                const textColor = getTextColorForWuxing(wuxing)
+                
                 dressGuideHTML += `
-                    <div class="color-item">
-                        <span class="wuxing-name">${wuxing}色：</span>
-                        <span class="color-list">${data.colors.join('、')}</span>
-                        <span class="description">${data.description}</span>
+                    <div class="color-card wuxing-${wuxing}" style="background: ${wuxingColor};">
+                        <div class="card-content">
+                            <div class="level-title" style="color: ${textColor};">${levelNames[level]}</div>
+                            <div class="wuxing-color">
+                                <span class="wuxing-name" style="color: ${textColor};">${wuxing}色：</span>
+                                <span class="color-list" style="color: ${textColor};">${data.colors.join('、')}</span>
+                            </div>
+                            <div class="color-description" style="color: ${textColor};">${data.description}</div>
+                        </div>
                     </div>
                 `
             })
-            
-            dressGuideHTML += `
-                    </div>
-                </div>
-            `
         }
     })
     
@@ -623,6 +648,11 @@ function queryTianganDizhi() {
                     dressRecommendation = `日主${dayMaster}（${strength}），主用神：${useGods.mainUseGod}，次用神：${useGods.subUseGod}`;
                 }
                 
+                // 显示详细的穿衣指南卡片
+                if (typeof displayDressGuide === 'function') {
+                    displayDressGuide(dressGuide);
+                }
+                
                 console.log('五行穿衣推荐计算完成:', dressGuide);
             } else {
                 console.warn('calculateDressGuide函数未找到，请确保script.js已正确加载');
@@ -642,16 +672,11 @@ function queryTianganDizhi() {
         document.getElementById('zodiac').textContent = zodiacAnimal;
         document.getElementById('wuxing').textContent = wuxingInfo;
         
-        // 添加穿衣推荐显示
-        let dressElement = document.getElementById('dressRecommendation');
-        if (!dressElement) {
-            // 如果没有穿衣推荐元素，创建一个
-            dressElement = document.createElement('div');
-            dressElement.className = 'result-item highlight';
-            dressElement.innerHTML = '<span class="label">穿衣推荐：</span><span class="value" id="dressRecommendationValue"></span>';
-            document.querySelector('.result-card').appendChild(dressElement);
+        // 移除已存在的穿衣推荐元素（如果存在）
+        const existingDressElement = document.getElementById('dressRecommendation');
+        if (existingDressElement) {
+            existingDressElement.remove();
         }
-        document.getElementById('dressRecommendationValue').textContent = dressRecommendation;
         
         // 显示结果区域
         document.getElementById('resultSection').style.display = 'block';
