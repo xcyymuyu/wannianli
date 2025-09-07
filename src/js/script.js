@@ -1211,6 +1211,198 @@ function setTodayDate() {
     queryTianganDizhi(true);
 }
 
+/**
+ * 绑定输入框变化事件
+ */
+function bindInputChangeEvents() {
+    const yearInput = document.getElementById('year');
+    const monthSelect = document.getElementById('month');
+    const dayInput = document.getElementById('day');
+    
+    if (yearInput) {
+        yearInput.addEventListener('input', () => {
+            const year = parseInt(yearInput.value);
+            if (year && year >= 1900 && year <= 2100) {
+                updateYearButtonStates(year);
+            }
+        });
+    }
+    
+    if (monthSelect) {
+        monthSelect.addEventListener('change', () => {
+            // 月份变化时调整日期
+            adjustDayForMonth();
+        });
+    }
+    
+    if (dayInput) {
+        dayInput.addEventListener('input', () => {
+            // 日期变化时检查月份和年份
+            const day = parseInt(dayInput.value);
+            const month = parseInt(monthSelect?.value) || 1;
+            const year = parseInt(yearInput?.value) || new Date().getFullYear();
+            
+            if (day && month && year) {
+                const maxDays = new Date(year, month, 0).getDate();
+                if (day > maxDays) {
+                    dayInput.value = maxDays;
+                }
+            }
+        });
+    }
+}
+
+/**
+ * 绑定增减按钮事件
+ */
+function bindAdjustButtons() {
+    // 年份增减按钮
+    const yearMinus = document.getElementById('yearMinus');
+    const yearPlus = document.getElementById('yearPlus');
+    const yearInput = document.getElementById('year');
+    
+    if (yearMinus && yearPlus && yearInput) {
+        yearMinus.addEventListener('click', () => adjustYear(-1));
+        yearPlus.addEventListener('click', () => adjustYear(1));
+        console.log('年份增减按钮事件绑定成功');
+    }
+    
+    // 月份增减按钮
+    const monthMinus = document.getElementById('monthMinus');
+    const monthPlus = document.getElementById('monthPlus');
+    const monthSelect = document.getElementById('month');
+    
+    if (monthMinus && monthPlus && monthSelect) {
+        monthMinus.addEventListener('click', () => adjustMonth(-1));
+        monthPlus.addEventListener('click', () => adjustMonth(1));
+        console.log('月份增减按钮事件绑定成功');
+    }
+    
+    // 日期增减按钮
+    const dayMinus = document.getElementById('dayMinus');
+    const dayPlus = document.getElementById('dayPlus');
+    const dayInput = document.getElementById('day');
+    
+    if (dayMinus && dayPlus && dayInput) {
+        dayMinus.addEventListener('click', () => adjustDay(-1));
+        dayPlus.addEventListener('click', () => adjustDay(1));
+        console.log('日期增减按钮事件绑定成功');
+    }
+}
+
+/**
+ * 调整年份
+ * @param {number} delta - 变化量（+1或-1）
+ */
+function adjustYear(delta) {
+    const yearInput = document.getElementById('year');
+    const yearMinus = document.getElementById('yearMinus');
+    const yearPlus = document.getElementById('yearPlus');
+    
+    let currentYear = parseInt(yearInput.value) || new Date().getFullYear();
+    const newYear = currentYear + delta;
+    
+    // 限制年份范围
+    if (newYear >= 1900 && newYear <= 2100) {
+        yearInput.value = newYear;
+        
+        // 更新按钮状态
+        updateYearButtonStates(newYear);
+        
+        // 自动查询
+        queryTianganDizhi(false);
+    }
+}
+
+/**
+ * 更新年份按钮的禁用状态
+ * @param {number} year - 当前年份
+ */
+function updateYearButtonStates(year) {
+    const yearMinus = document.getElementById('yearMinus');
+    const yearPlus = document.getElementById('yearPlus');
+    
+    if (yearMinus) yearMinus.disabled = year <= 1900;
+    if (yearPlus) yearPlus.disabled = year >= 2100;
+}
+
+/**
+ * 调整月份
+ * @param {number} delta - 变化量（+1或-1）
+ */
+function adjustMonth(delta) {
+    const monthSelect = document.getElementById('month');
+    let currentMonth = parseInt(monthSelect.value) || 1;
+    let newMonth = currentMonth + delta;
+    
+    // 处理月份循环
+    if (newMonth < 1) {
+        newMonth = 12;
+        // 如果减到1月以下，同时减少年份
+        adjustYear(-1);
+    } else if (newMonth > 12) {
+        newMonth = 1;
+        // 如果加到12月以上，同时增加年份
+        adjustYear(1);
+    }
+    
+    monthSelect.value = newMonth;
+    // 调整日期以确保有效性
+    adjustDayForMonth();
+    // 自动查询
+    queryTianganDizhi(false);
+}
+
+/**
+ * 调整日期
+ * @param {number} delta - 变化量（+1或-1）
+ */
+function adjustDay(delta) {
+    const dayInput = document.getElementById('day');
+    const monthSelect = document.getElementById('month');
+    const yearInput = document.getElementById('year');
+    
+    let currentDay = parseInt(dayInput.value) || 1;
+    let currentMonth = parseInt(monthSelect.value) || 1;
+    let currentYear = parseInt(yearInput.value) || new Date().getFullYear();
+    
+    // 创建当前日期对象
+    const currentDate = new Date(currentYear, currentMonth - 1, currentDay);
+    const newDate = new Date(currentDate.getTime() + delta * 24 * 60 * 60 * 1000);
+    
+    // 更新所有字段
+    dayInput.value = newDate.getDate();
+    monthSelect.value = newDate.getMonth() + 1;
+    yearInput.value = newDate.getFullYear();
+    
+    // 更新按钮状态
+    updateYearButtonStates(newDate.getFullYear());
+    
+    // 自动查询
+    queryTianganDizhi(false);
+}
+
+/**
+ * 根据月份调整日期，确保日期有效
+ */
+function adjustDayForMonth() {
+    const dayInput = document.getElementById('day');
+    const monthSelect = document.getElementById('month');
+    const yearInput = document.getElementById('year');
+    
+    const currentDay = parseInt(dayInput.value) || 1;
+    const currentMonth = parseInt(monthSelect.value) || 1;
+    const currentYear = parseInt(yearInput.value) || new Date().getFullYear();
+    
+    // 获取该月的最大天数
+    const maxDays = new Date(currentYear, currentMonth, 0).getDate();
+    
+    // 如果当前日期超过该月最大天数，调整为最大天数
+    if (currentDay > maxDays) {
+        dayInput.value = maxDays;
+    }
+}
+
 // ============================================================================
 // 7. 应用初始化和事件绑定模块
 // ============================================================================
@@ -1248,8 +1440,18 @@ async function initApp() {
             console.log('今日按钮事件绑定成功');
         }
         
+        // 绑定增减按钮事件
+        bindAdjustButtons();
+        
+        // 绑定输入框变化事件
+        bindInputChangeEvents();
+        
         // 页面加载时自动设置今日日期并查询
         setTodayDate();
+        
+        // 初始化按钮状态
+        const currentYear = new Date().getFullYear();
+        updateYearButtonStates(currentYear);
         
     } catch (error) {
         console.error('lunisolar库加载失败：', error);
