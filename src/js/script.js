@@ -1023,6 +1023,16 @@ function displayDressAnalysis(dressGuide) {
  */
 function queryTianganDizhi(showHour = false) {
     console.log('查询函数被调用，显示时辰:', showHour);
+    
+    // 添加加载状态
+    const queryBtn = document.getElementById('queryBtn');
+    const resultSection = document.getElementById('resultSection');
+    
+    if (queryBtn) {
+        queryBtn.classList.add('loading');
+        queryBtn.disabled = true;
+    }
+    
     const year = parseInt(document.getElementById('year').value);
     const month = parseInt(document.getElementById('month').value);
     const day = parseInt(document.getElementById('day').value);
@@ -1194,6 +1204,12 @@ function queryTianganDizhi(showHour = false) {
     } catch (error) {
         console.error('查询出错：', error);
         alert('查询出错，请检查输入的日期是否有效');
+    } finally {
+        // 移除加载状态
+        if (queryBtn) {
+            queryBtn.classList.remove('loading');
+            queryBtn.disabled = false;
+        }
     }
 }
 
@@ -1473,6 +1489,9 @@ async function initApp() {
         const currentYear = new Date().getFullYear();
         updateYearButtonStates(currentYear);
         
+        // 初始化版本显示
+        initVersionDisplay();
+        
     } catch (error) {
         console.error('lunisolar库加载失败：', error);
         alert('系统初始化失败，请刷新页面重试');
@@ -1486,6 +1505,39 @@ async function initApp() {
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', initApp);
 
+// ============================================================================
+// 9. 版本显示模块
+// ============================================================================
+
+/**
+ * 版本信息
+ */
+const versionInfo = {
+    version: 'v1.0.2',
+    buildDate: new Date().toISOString().split('T')[0]
+};
+
+/**
+ * 更新版本显示
+ */
+function updateVersionDisplay() {
+    const versionDisplay = document.getElementById('versionDisplay');
+    if (versionDisplay) {
+        versionDisplay.textContent = `版本: ${versionInfo.version}`;
+        console.log('版本显示已更新为:', versionDisplay.textContent);
+    }
+}
+
+/**
+ * 初始化版本显示
+ */
+function initVersionDisplay() {
+    // 更新版本显示
+    updateVersionDisplay();
+    console.log('版本显示模块初始化完成');
+}
+
 // 导出函数供HTML调用
 window.queryTianganDizhi = queryTianganDizhi
 window.setTodayDate = setTodayDate
+window.initVersionDisplay = initVersionDisplay

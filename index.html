@@ -2,8 +2,14 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- 微信浏览器优化 -->
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>天干地支查询工具</title>
+    <!-- 添加favicon -->
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📅</text></svg>">
     <!-- 引入外部样式文件 -->
     <link rel="stylesheet" href="src/css/style.css">
     <!-- 内联关键样式确保基本显示效果 -->
@@ -23,9 +29,17 @@
         .input-section { margin-bottom: 30px; }
         .input-group { display: flex; align-items: center; margin-bottom: 20px; }
         .input-group label { min-width: 80px; font-weight: 500; color: #555; }
-        .input-group input, .input-group select { flex: 1; padding: 12px; border: 2px solid #e0e6ed; border-radius: 8px; font-size: 16px; }
+        .input-group input, .input-group select { flex: 1; padding: 12px; border: 2px solid #e0e6ed; border-radius: 8px; font-size: 16px; -webkit-appearance: none; appearance: none; }
+        .adjust-btn { padding: 8px 12px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; cursor: pointer; font-size: 14px; margin: 0 5px; transition: all 0.2s ease; -webkit-tap-highlight-color: transparent; }
+        .adjust-btn:hover { background: #e9ecef; }
+        .adjust-btn:active { transform: scale(0.95); background: #dee2e6; }
+        .today-btn { padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; margin-right: 10px; transition: all 0.2s ease; -webkit-tap-highlight-color: transparent; }
+        .today-btn:hover { background: #218838; }
+        .today-btn:active { transform: scale(0.95); background: #1e7e34; }
         .input-with-buttons { display: flex; align-items: center; flex: 1; }
-        #queryBtn { width: 100%; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: 600; cursor: pointer; }
+        #queryBtn { width: 100%; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; -webkit-tap-highlight-color: transparent; }
+        #queryBtn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); }
+        #queryBtn:active { transform: translateY(0); box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3); }
         .result-section { margin-top: 30px; }
         .result-card { background: #f8fafc; border-radius: 15px; padding: 30px; border: 1px solid #e2e8f0; }
         .result-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e2e8f0; }
@@ -33,6 +47,42 @@
         .label { font-weight: 600; color: #4a5568; }
         .value { font-weight: 500; color: #2d3748; }
         footer { text-align: center; color: white; opacity: 0.8; padding: 20px 0; }
+        .version-info { margin-top: 15px; display: flex; align-items: center; justify-content: center; }
+        .version-info span { font-size: 1rem; opacity: 1; color: white; font-weight: 600; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); background: rgba(0,0,0,0.2); padding: 5px 10px; border-radius: 5px; }
+        
+        /* 移动端优化 */
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            header h1 { font-size: 2rem; }
+            main { padding: 20px; border-radius: 15px; }
+            .input-group { flex-direction: column; align-items: stretch; }
+            .input-group label { min-width: auto; margin-bottom: 5px; }
+            .input-with-buttons { flex-direction: column; }
+            .adjust-btn { margin: 5px 0; }
+            .button-group { display: flex; flex-direction: column; gap: 10px; }
+            .today-btn, #queryBtn { width: 100%; }
+        }
+        
+        /* 微信浏览器特殊优化 */
+        @media screen and (-webkit-min-device-pixel-ratio: 0) {
+            .input-group input, .input-group select { 
+                -webkit-appearance: none; 
+                appearance: none;
+                border-radius: 8px;
+            }
+        }
+        
+        /* 加载状态优化 */
+        .loading { opacity: 0.6; pointer-events: none; }
+        .loading::after { content: '查询中...'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #667eea; font-weight: 600; }
+        
+        /* 触摸反馈优化 */
+        @media (hover: none) and (pointer: coarse) {
+            .adjust-btn, .today-btn, #queryBtn { 
+                -webkit-tap-highlight-color: rgba(0,0,0,0.1);
+                touch-action: manipulation;
+            }
+        }
     </style>
     <!-- 动态设置CSS和JS路径 -->
     <script>
@@ -153,8 +203,12 @@
         
         <footer>
             <p>使用 lunisolar.js 万年历插件实现</p>
+            <div class="version-info">
+                <span id="versionDisplay" style="color: white; font-weight: 600; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); font-size: 1rem;">版本: v1.0.2</span>
+            </div>
         </footer>
     </div>
+    
     
     <!-- 引入外部JS文件 -->
     <script src="src/js/script.js"></script>
