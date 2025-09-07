@@ -1256,15 +1256,21 @@ function bindInputChangeEvents() {
  * 绑定增减按钮事件
  */
 function bindAdjustButtons() {
+    console.log('开始绑定增减按钮事件...');
+    
     // 年份增减按钮
     const yearMinus = document.getElementById('yearMinus');
     const yearPlus = document.getElementById('yearPlus');
     const yearInput = document.getElementById('year');
     
+    console.log('年份按钮元素:', { yearMinus, yearPlus, yearInput });
+    
     if (yearMinus && yearPlus && yearInput) {
         yearMinus.addEventListener('click', () => adjustYear(-1));
         yearPlus.addEventListener('click', () => adjustYear(1));
         console.log('年份增减按钮事件绑定成功');
+    } else {
+        console.warn('年份按钮元素未找到:', { yearMinus, yearPlus, yearInput });
     }
     
     // 月份增减按钮
@@ -1272,10 +1278,14 @@ function bindAdjustButtons() {
     const monthPlus = document.getElementById('monthPlus');
     const monthSelect = document.getElementById('month');
     
+    console.log('月份按钮元素:', { monthMinus, monthPlus, monthSelect });
+    
     if (monthMinus && monthPlus && monthSelect) {
         monthMinus.addEventListener('click', () => adjustMonth(-1));
         monthPlus.addEventListener('click', () => adjustMonth(1));
         console.log('月份增减按钮事件绑定成功');
+    } else {
+        console.warn('月份按钮元素未找到:', { monthMinus, monthPlus, monthSelect });
     }
     
     // 日期增减按钮
@@ -1283,10 +1293,14 @@ function bindAdjustButtons() {
     const dayPlus = document.getElementById('dayPlus');
     const dayInput = document.getElementById('day');
     
+    console.log('日期按钮元素:', { dayMinus, dayPlus, dayInput });
+    
     if (dayMinus && dayPlus && dayInput) {
         dayMinus.addEventListener('click', () => adjustDay(-1));
         dayPlus.addEventListener('click', () => adjustDay(1));
         console.log('日期增减按钮事件绑定成功');
+    } else {
+        console.warn('日期按钮元素未找到:', { dayMinus, dayPlus, dayInput });
     }
 }
 
@@ -1295,12 +1309,16 @@ function bindAdjustButtons() {
  * @param {number} delta - 变化量（+1或-1）
  */
 function adjustYear(delta) {
+    console.log('adjustYear 被调用，delta:', delta);
+    
     const yearInput = document.getElementById('year');
     const yearMinus = document.getElementById('yearMinus');
     const yearPlus = document.getElementById('yearPlus');
     
     let currentYear = parseInt(yearInput.value) || new Date().getFullYear();
     const newYear = currentYear + delta;
+    
+    console.log('年份调整:', { currentYear, newYear, delta });
     
     // 限制年份范围
     if (newYear >= 1900 && newYear <= 2100) {
@@ -1311,6 +1329,8 @@ function adjustYear(delta) {
         
         // 自动查询
         queryTianganDizhi(false);
+    } else {
+        console.log('年份超出范围，不进行调整');
     }
 }
 
