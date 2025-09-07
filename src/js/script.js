@@ -1513,7 +1513,8 @@ document.addEventListener('DOMContentLoaded', initApp);
  * 版本信息
  */
 const versionInfo = {
-    version: 'v1.0.2',
+    // 版本号 
+    version: 'v1.0.5',
     buildDate: new Date().toISOString().split('T')[0]
 };
 
