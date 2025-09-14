@@ -513,6 +513,21 @@ function getWuxingRelation(wuxing1, wuxing2) {
 }
 
 /**
+ * 获取五行与当日地支五行的关系
+ * @param {string} wuxing - 五行属性
+ * @param {string} dayBranchWuxing - 当日地支五行属性
+ * @returns {string} 关系类型
+ */
+function getWuxingRelationToDayBranch(wuxing, dayBranchWuxing) {
+    if (wuxing === dayBranchWuxing) return '同为者'  // 同为者
+    if (wuxingRelations[wuxing].生 === dayBranchWuxing) return '生我者'  // 生我者（该五行生当日地支五行）
+    if (wuxingRelations[wuxing].克 === dayBranchWuxing) return '我克者'  // 我克者（该五行克当日地支五行）
+    if (wuxingRelations[wuxing].被生 === dayBranchWuxing) return '我生者'  // 我生者（该五行被当日地支五行生）
+    if (wuxingRelations[wuxing].被克 === dayBranchWuxing) return '克我者'  // 克我者（该五行被当日地支五行克）
+    return '无关系'
+}
+
+/**
  * 计算色彩等级
  * 根据五行与用神的关系确定色彩等级
  * @param {string} wuxing - 五行属性
@@ -595,45 +610,87 @@ function calculateColorLevel(wuxing, useGods) {
 }
 
 /**
+ * 根据五行与当日地支的关系计算色彩等级
+ * @param {string} wuxing - 五行属性
+ * @param {string} relation - 与当日地支五行的关系
+ * @returns {Object} 色彩等级信息
+ */
+function calculateColorLevelByRelation(wuxing, relation) {
+    switch (relation) {
+        case '我生者':
+            return {
+                level: '贵人色（大吉）',
+                description: '我生者',
+                colors: wuxingColors[wuxing],
+                relation: '我生者'
+            }
+        case '同为者':
+            return {
+                level: '合作色（次吉）',
+                description: '同为者',
+                colors: wuxingColors[wuxing],
+                relation: '同为者'
+            }
+        case '克我者':
+            return {
+                level: '不宜色（不吉）',
+                description: '克我者',
+                colors: wuxingColors[wuxing],
+                relation: '克我者'
+            }
+        case '生我者':
+            return {
+                level: '消耗色（平）',
+                description: '生我者',
+                colors: wuxingColors[wuxing],
+                relation: '生我者'
+            }
+        case '我克者':
+            return {
+                level: '招财色（平）',
+                description: '我克者',
+                colors: wuxingColors[wuxing],
+                relation: '我克者'
+            }
+        default:
+            return {
+                level: '未知关系',
+                description: '未知关系，不建议使用',
+                colors: wuxingColors[wuxing] || [],
+                relation: '无关系'
+            }
+    }
+}
+
+/**
  * 计算五行穿衣指南
- * 主函数，整合所有穿衣推荐算法
+ * 基于当日地支五行属性的生克关系为判定基础
  * @param {Object} char8 - 八字信息
  * @returns {Object} 完整的穿衣指南
  */
 function calculateDressGuide(char8) {
-    const dayStem = char8.day.stem
-    const yearStem = char8.year.stem
-    const monthStem = char8.month.stem
-    const yearBranch = char8.year.branch
-    const monthBranch = char8.month.branch
     const dayBranch = char8.day.branch
-    const dayWuxing = dayStem.e5.name
-    const monthWuxingValue = getAccurateMonthWuxing(char8)
+    const dayBranchWuxing = dayBranch.e5.name  // 当日地支五行属性
     
-    // 分析日主强弱
-    const strength = analyzeDayMasterStrength(dayStem, monthWuxingValue, yearStem, monthStem, yearBranch, monthBranch, dayBranch)
+    console.log(`当日地支: ${dayBranch.name}, 五行属性: ${dayBranchWuxing}`)
     
-    // 确定用神
-    const useGods = determineUseGods(dayWuxing, strength)
-    
-    // 计算各五行色彩等级
+    // 基于当日地支五行属性计算各色彩等级
     const dressGuide = {}
+    
+    // 计算各五行与当日地支五行的关系
     for (const wuxing of ['金', '木', '水', '火', '土']) {
-        dressGuide[wuxing] = calculateColorLevel(wuxing, useGods)
+        const relation = getWuxingRelationToDayBranch(wuxing, dayBranchWuxing)
+        dressGuide[wuxing] = calculateColorLevelByRelation(wuxing, relation)
     }
     
     return {
-        dayMaster: dayWuxing,
-        strength: strength > 0 ? '旺' : strength < 0 ? '弱' : '平',
-        monthWuxing: monthWuxingValue,
-        useGods: useGods,
+        dayBranch: dayBranch.name,
+        dayBranchWuxing: dayBranchWuxing,
         dressGuide: dressGuide,
         analysis: {
-            monthWuxing: monthWuxingValue,
-            dayMasterStrength: strength,
-            mainUseGod: useGods.mainUseGod,
-            subUseGod: useGods.subUseGod,
-            avoidGod: useGods.avoidGod
+            dayBranch: dayBranch.name,
+            dayBranchWuxing: dayBranchWuxing,
+            principle: '基于当日地支五行属性的生克关系'
         }
     }
 }
@@ -723,6 +780,12 @@ function calculateAdvancedDressGuide(char8, date) {
  * @returns {string} 推荐文本
  */
 function generateDressRecommendationText(dressGuide) {
+    // 检查是否为新的基于地支五行的穿衣指南
+    if (dressGuide.dayBranch && dressGuide.dayBranchWuxing) {
+        return generateNewDressRecommendationText(dressGuide);
+    }
+    
+    // 兼容旧的穿衣指南格式
     const { dayMaster, strength, useGods, dressGuide: guide } = dressGuide;
     
     // 找到最佳推荐颜色
@@ -756,11 +819,74 @@ function generateDressRecommendationText(dressGuide) {
 }
 
 /**
+ * 生成新的基于地支五行的穿衣推荐文本
+ * @param {Object} dressGuide - 新的穿衣指南对象
+ * @returns {string} 推荐文本
+ */
+function generateNewDressRecommendationText(dressGuide) {
+    const { dayBranch, dayBranchWuxing, dressGuide: guide } = dressGuide;
+    
+    // 按等级分类颜色
+    const nobleColors = [];      // 贵人色
+    const cooperativeColors = []; // 合作色
+    const wealthColors = [];     // 招财色
+    const consumptionColors = []; // 消耗色
+    const avoidColors = [];      // 不宜色
+    
+    for (const [wuxing, data] of Object.entries(guide)) {
+        switch (data.level) {
+            case '贵人色（大吉）':
+                nobleColors.push(...data.colors);
+                break;
+            case '合作色（次吉）':
+                cooperativeColors.push(...data.colors);
+                break;
+            case '招财色（平）':
+                wealthColors.push(...data.colors);
+                break;
+            case '消耗色（平）':
+                consumptionColors.push(...data.colors);
+                break;
+            case '不宜色（不吉）':
+                avoidColors.push(...data.colors);
+                break;
+        }
+    }
+    
+    let recommendation = `当日地支为"${dayBranch}"（五行属${dayBranchWuxing}），根据五行生克关系推算：`;
+    
+    if (nobleColors.length > 0) {
+        recommendation += ` 贵人色（大吉）：${nobleColors.slice(0, 3).join('、')}等，意为助力，得帮扶。`;
+    }
+    if (cooperativeColors.length > 0) {
+        recommendation += ` 合作色（次吉）：${cooperativeColors.slice(0, 2).join('、')}等，意为合作共享。`;
+    }
+    if (wealthColors.length > 0) {
+        recommendation += ` 招财色（平）：${wealthColors.slice(0, 2).join('、')}等，意为掌控，需奋斗。`;
+    }
+    if (consumptionColors.length > 0) {
+        recommendation += ` 消耗色（平）：${consumptionColors.slice(0, 2).join('、')}等，意为消耗，苦付出。`;
+    }
+    if (avoidColors.length > 0) {
+        recommendation += ` 不宜色（不吉）：${avoidColors.slice(0, 2).join('、')}等，意为压力，被伤害。`;
+    }
+    
+    return recommendation;
+}
+
+/**
  * 显示穿衣指南
  * 在页面上显示详细的穿衣指南HTML，按照卡片式布局
  * @param {Object} dressGuide - 穿衣指南对象
  */
 function displayDressGuide(dressGuide) {
+    // 检查是否为新的基于地支五行的穿衣指南
+    if (dressGuide.dayBranch && dressGuide.dayBranchWuxing) {
+        displayNewDressGuide(dressGuide);
+        return;
+    }
+    
+    // 兼容旧的穿衣指南格式
     const { dayMaster, strength, seasonWuxing, useGods, dressGuide: guide } = dressGuide
     
     // 创建穿衣指南HTML
@@ -832,6 +958,98 @@ function displayDressGuide(dressGuide) {
                                 <span class="color-list" style="color: ${textColor};">${data.colors.join('、')}</span>
                             </div>
                             <div class="color-description" style="color: ${textColor};">${data.description}</div>
+                        </div>
+                    </div>
+                `
+            })
+        }
+    })
+    
+    dressGuideHTML += `
+            </div>
+        </div>
+    `
+    
+    // 查找或创建穿衣指南容器
+    let dressGuideContainer = document.getElementById('dressGuideContainer')
+    if (!dressGuideContainer) {
+        dressGuideContainer = document.createElement('div')
+        dressGuideContainer.id = 'dressGuideContainer'
+        document.getElementById('resultSection').appendChild(dressGuideContainer)
+    }
+    
+    dressGuideContainer.innerHTML = dressGuideHTML
+}
+
+/**
+ * 显示新的基于地支五行的穿衣指南
+ * @param {Object} dressGuide - 新的穿衣指南对象
+ */
+function displayNewDressGuide(dressGuide) {
+    const { dayBranch, dayBranchWuxing, dressGuide: guide } = dressGuide
+    
+    // 创建新的穿衣指南HTML
+    let dressGuideHTML = `
+        <div class="dress-guide-section">
+            <h3>五行穿衣指南</h3>
+            <div class="analysis-info">
+                <p><strong>当日地支：</strong>${dayBranch}（五行属${dayBranchWuxing}）</p>
+                <p><strong>推算原理：</strong>根据当日地支五行属性的生克关系为判定基础</p>
+            </div>
+            <div class="color-cards">
+    `
+    
+    // 按等级分组显示，使用新的等级名称
+    const levelOrder = ['贵人色（大吉）', '合作色（次吉）', '招财色（平）', '消耗色（平）', '不宜色（不吉）']
+    const levelNames = {
+        '贵人色（大吉）': '贵人色（大吉）',
+        '合作色（次吉）': '合作色（次吉）',
+        '招财色（平）': '招财色（平）',
+        '消耗色（平）': '消耗色（平）',
+        '不宜色（不吉）': '不宜色（不吉）'
+    }
+    
+    // 五行对应的高级颜色
+    const wuxingColors = {
+        '金': '#D4AF37',  // 金色系
+        '木': '#228B22',  // 木色系
+        '水': '#87CEEB',  // 水色系
+        '火': '#DC143C',  // 火色系
+        '土': '#CD853F'   // 土色系
+    }
+    
+    const getWuxingColor = (wuxing) => {
+        return wuxingColors[wuxing] || '#f8f9fa'
+    }
+    
+    const getTextColorForWuxing = (wuxing) => {
+        const textColors = {
+            '金': '#8B4513',
+            '木': '#F0FFF0',
+            '水': '#1E3A8A',
+            '火': '#FFF8DC',
+            '土': '#F5F5DC'
+        }
+        return textColors[wuxing] || '#8B4513'
+    }
+    
+    levelOrder.forEach(level => {
+        const colorsInLevel = Object.entries(guide).filter(([wuxing, data]) => data.level === level)
+        if (colorsInLevel.length > 0) {
+            colorsInLevel.forEach(([wuxing, data]) => {
+                const wuxingColor = getWuxingColor(wuxing)
+                const textColor = getTextColorForWuxing(wuxing)
+                
+                dressGuideHTML += `
+                    <div class="color-card wuxing-${wuxing}" style="background: ${wuxingColor};">
+                        <div class="card-content">
+                            <div class="level-title" style="color: ${textColor};">${levelNames[level]}</div>
+                            <div class="wuxing-color">
+                                <span class="wuxing-name" style="color: ${textColor};">${wuxing}色：</span>
+                                <span class="color-list" style="color: ${textColor};">${data.colors.join('、')}</span>
+                            </div>
+                            <div class="color-description" style="color: ${textColor};">${data.description}</div>
+                            <div class="relation-info" style="color: ${textColor};">关系：${data.relation}</div>
                         </div>
                     </div>
                 `
@@ -1111,12 +1329,32 @@ function queryTianganDizhi(showHour = false) {
             wuxingInfo = '未查询到五行';
         }
         
-        // 穿衣推荐 - 基于天干地支数据计算
+        // 穿衣推荐 - 基于新的五行穿衣法则计算
         let dressRecommendation = '未查询到';
         try {
-            // 优先使用高级算法
-            if (typeof calculateAdvancedDressGuide === 'function') {
-                console.log('使用高级穿衣指南算法');
+            // 优先使用新的基于地支五行的算法
+            if (typeof calculateDressGuide === 'function') {
+                console.log('使用新的基于地支五行的穿衣指南算法');
+                const dressGuide = calculateDressGuide(date.char8);
+                
+                // 生成穿衣推荐文本
+                if (typeof generateDressRecommendationText === 'function') {
+                    dressRecommendation = generateDressRecommendationText(dressGuide);
+                } else {
+                    // 如果generateDressRecommendationText不存在，使用简单格式
+                    const { dayBranch, dayBranchWuxing } = dressGuide;
+                    dressRecommendation = `当日地支为"${dayBranch}"（五行属${dayBranchWuxing}），根据五行生克关系推算穿衣指南`;
+                }
+                
+                // 显示详细的穿衣指南卡片
+                if (typeof displayDressGuide === 'function') {
+                    displayDressGuide(dressGuide);
+                }
+                
+                console.log('新的五行穿衣推荐计算完成:', dressGuide);
+            } else if (typeof calculateAdvancedDressGuide === 'function') {
+                // 备用：使用高级算法
+                console.log('使用高级穿衣指南算法（备用）');
                 const dressGuide = calculateAdvancedDressGuide(date.char8, date);
                 
                 // 生成穿衣推荐文本
@@ -1139,31 +1377,6 @@ function queryTianganDizhi(showHour = false) {
                 }
                 
                 console.log('高级五行穿衣推荐计算完成:', dressGuide);
-            } else if (typeof calculateDressGuide === 'function') {
-                // 备用：使用基础算法
-                console.log('使用基础穿衣指南算法');
-                const lunarMonth = date.lunar ? date.lunar.month : month;
-                const dressGuide = calculateDressGuide(date.char8, lunarMonth);
-                
-                // 生成穿衣推荐文本
-                if (typeof generateDressRecommendationText === 'function') {
-                    dressRecommendation = generateDressRecommendationText(dressGuide);
-                } else {
-                    const { dayMaster, strength, useGods } = dressGuide;
-                    dressRecommendation = `日主${dayMaster}（${strength}），主用神：${useGods.mainUseGod}，次用神：${useGods.subUseGod}`;
-                }
-                
-                // 显示详细的穿衣指南卡片
-                if (typeof displayDressGuide === 'function') {
-                    displayDressGuide(dressGuide);
-                }
-                
-                // 显示穿衣推荐推导过程
-                if (typeof displayDressAnalysis === 'function') {
-                    displayDressAnalysis(dressGuide);
-                }
-                
-                console.log('基础五行穿衣推荐计算完成:', dressGuide);
             } else {
                 console.warn('calculateDressGuide函数未找到，请确保script.js已正确加载');
                 dressRecommendation = '函数未加载';
