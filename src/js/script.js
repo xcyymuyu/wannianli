@@ -631,12 +631,12 @@ function calculateColorLevelByRelation(wuxing, relation) {
                 colors: wuxingColors[wuxing],
                 relation: '同为者'
             }
-        case '克我者':
+        case '我克者':
             return {
-                level: '不宜色（不吉）',
-                description: '克我者',
+                level: '招财色（平）',
+                description: '我克者',
                 colors: wuxingColors[wuxing],
-                relation: '克我者'
+                relation: '我克者'
             }
         case '生我者':
             return {
@@ -645,12 +645,12 @@ function calculateColorLevelByRelation(wuxing, relation) {
                 colors: wuxingColors[wuxing],
                 relation: '生我者'
             }
-        case '我克者':
+        case '克我者':
             return {
-                level: '招财色（平）',
-                description: '我克者',
+                level: '不宜色（不吉）',
+                description: '克我者',
                 colors: wuxingColors[wuxing],
-                relation: '我克者'
+                relation: '克我者'
             }
         default:
             return {
